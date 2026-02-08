@@ -1,0 +1,42 @@
+﻿<nav class="navbar navbar-expand-lg navbar-light bg-info bg-gradient shadow-sm">
+    <div class="container">
+        <a class="navbar-brand text-white" asp-controller="User" asp-action="Index">
+            <span class="me-2">🎓</span> User Area
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#userNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="userNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link text-white px-3" asp-controller="User" asp-action="Index">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white px-3" asp-controller="Home" asp-action="Index">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white px-3" asp-controller="Home" asp-action="About">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white px-3" asp-controller="Home" asp-action="Contact">Contact</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white px-3" asp-controller="Service" asp-action="Index">Service</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <span class="navbar-text text-white me-3">
+                    <strong>@User.Identity?.Name</strong>
+                </span>
+                <a class="btn btn-outline-light btn-sm me-2" asp-controller="Account" asp-action="ChangePassword">
+                    Change Password
+                </a>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="container my-5"></div>

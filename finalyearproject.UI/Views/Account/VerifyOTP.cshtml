@@ -1,0 +1,67 @@
+﻿@model finalyearproject.UI.Models.VerifyOTPViewModel
+
+@{
+    ViewData["Title"] = "Verify OTP";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0 text-center">Verify Email</h3>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info text-center">
+                    <p class="mb-0">Code sent to: <strong>@Model.Email</strong></p>
+                </div>
+
+                <form asp-action="VerifyOTP" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Email" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="OTPCode" class="form-label fw-bold">Enter 6-Digit OTP</label>
+                        <input asp-for="OTPCode" class="form-control form-control-lg text-center"
+                               style="letter-spacing: 0.5em;" maxlength="6" autofocus />
+                        <span asp-validation-for="OTPCode" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">Verify</button>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+                <div class="text-center">
+                    <p class="text-muted mb-2">Didn't receive code?</p>
+                    <button id="resendBtn" class="btn btn-link">Resend OTP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('resendBtn').addEventListener('click', function() {
+            const email = '@Model.Email';
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            fetch('@Url.Action("ResendOTP")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'email=' + encodeURIComponent(email)
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.success ? data.message : 'Error');
+                btn.disabled = false;
+                btn.textContent = 'Resend OTP';
+            });
+        });
+    </script>
+}
