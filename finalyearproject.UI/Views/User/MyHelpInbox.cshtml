@@ -1,0 +1,271 @@
+@{
+    ViewData["Title"] = "Help Inbox (as helper)";
+    Layout = "_Layout";
+}
+<style>
+    .requests-wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .section-title { color: #e8f4f8; font-weight: 700; margin-bottom: 16px; }
+    .req-card { background: #16213e; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .req-card .who { color: #a78bfa; font-weight: 600; }
+    .req-card .status { font-size: 0.8rem; padding: 2px 8px; border-radius: 20px; }
+    .req-card .status.pending { background: rgba(246,173,85,0.2); color: #f6ad55; }
+    .req-card .status.accepted { background: rgba(72,187,120,0.2); color: #48bb78; }
+    .req-card .status.rejected { background: rgba(245,101,101,0.2); color: #f56565; }
+    .req-card .status.completed { background: rgba(107,140,168,0.2); color: #6b8fa8; }
+    .req-card .status.notcompleted { background: rgba(239,68,68,0.15); color: #fecaca; }
+    .chat-box { background: #0a0f1d; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-top: 12px; max-height: 280px; overflow-y: auto; }
+    .chat-msg { margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; font-size: 0.9rem; }
+    .chat-msg.me { background: rgba(124,58,237,0.25); margin-left: 24px; }
+    .chat-msg.them { background: rgba(255,255,255,0.06); margin-right: 24px; }
+    .chat-send { display: flex; gap: 8px; margin-top: 8px; }
+    .chat-send input.chat-text { flex: 1; background: #0a0f1d; border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; padding: 8px 12px; }
+    .chat-send input.chat-file { max-width: 220px; font-size: 0.8rem; }
+</style>
+
+<div class="requests-wrap">
+    <h2 class="mb-4" style="color:#e8f4f8;">🧑‍🤝‍🧑 Help Inbox (as helper)</h2>
+    <p class="text-muted mb-4">These are the help requests that other users have sent to you. Accept or reject requests and chat with seekers here.</p>
+
+    <h5 class="section-title">Requests sent to you</h5>
+    <div id="asHelperList"></div>
+</div>
+
+<!-- Image viewer modal (cross button to close) -->
+<div class="modal fade" id="imageViewerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background:#0a0f1d; border:1px solid rgba(255,255,255,0.12);">
+            <div class="modal-header border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="modal-title text-white">Image</h5>
+                <button type="button" class="btn btn-outline-light btn-sm px-3" id="imageViewerClose" aria-label="Close">
+                    ✕ Close
+                </button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="imageViewerImg" src="" alt="Attachment" class="img-fluid" style="max-height: 70vh;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat modal -->
+<div class="modal fade" id="chatModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#0a0f1d; border:1px solid rgba(255,255,255,0.12);">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white" id="chatModalTitle">Chat</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="chatCompletedBanner" class="alert alert-info py-2 mb-2 d-none" style="background:rgba(72,187,120,0.2);border:1px solid rgba(72,187,120,0.3);color:#48bb78;">
+                    ✓ Task Completed — View-only. Messaging is disabled.
+                </div>
+                <div id="chatMessages" class="chat-box"></div>
+                <div id="chatSendArea" class="chat-send">
+                    <input type="file" id="chatFile" class="form-control form-control-sm chat-file" />
+                    <input type="text" id="chatInput" class="chat-text" placeholder="Type a message..." />
+                    <button type="button" class="btn btn-primary" id="chatSendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+$(function () {
+    var currentUserId = '@(ViewBag.UserId ?? "")';
+    var currentHelpRequestId = 0;
+    var currentOtherName = '';
+    var currentChatStatus = '';
+
+    function load() {
+        $.getJSON('/User/GetRequestsAsHelper').done(function (rows) {
+            renderHelper(rows || []);
+
+            // Opening the inbox means the helper has reviewed incoming requests.
+            if (window.peerAssistNotifications && typeof window.peerAssistNotifications.clearHelpInbox === 'function') {
+                window.peerAssistNotifications.clearHelpInbox();
+            }
+        });
+    }
+
+    function statusClass(s) {
+        var v = (s || '').toLowerCase();
+        if (v === 'pending') return 'pending';
+        if (v === 'accepted') return 'accepted';
+        if (v === 'rejected') return 'rejected';
+        if (v === 'completed') return 'completed';
+        if (v === 'notcompleted') return 'notcompleted';
+        return 'pending';
+    }
+
+    function renderHelper(rows) {
+        var html = '';
+        if (!rows.length) {
+            $('#asHelperList').html('<p class="text-muted">No requests sent to you.</p>');
+            return;
+        }
+        rows.forEach(function (r) {
+            var status = (r.Status || r.status || '').toLowerCase();
+            var seekerName = r.SeekerUsername || r.seekerUsername || ('User #' + (r.SeekerId || r.seekerId));
+            html += '<div class="req-card">';
+            html += '<span class="who">' + seekerName + '</span> asked for help';
+            html += ' <span class="status ' + statusClass(status) + '">' + (r.Status || r.status) + '</span>';
+            if (status === 'pending') {
+                html += ' <button type="button" class="btn btn-sm btn-success ms-2" data-id="' + (r.HelpRequestId || r.helpRequestId) + '">Accept</button>';
+                html += ' <button type="button" class="btn btn-sm btn-danger ms-1" data-id="' + (r.HelpRequestId || r.helpRequestId) + '" data-reject="1">Reject</button>';
+            }
+            if (status === 'accepted') {
+                var id = (r.HelpRequestId || r.helpRequestId);
+                html += ' <button type="button" class="btn btn-sm btn-outline-info ms-2 chat-open" data-id="' + id + '" data-name="' + seekerName + '" data-status="' + status + '">Chat with seeker</button>';
+            }
+            if (status === 'completed' || status === 'notcompleted') {
+                var id = (r.HelpRequestId || r.helpRequestId);
+                html += ' <button type="button" class="btn btn-sm btn-outline-secondary ms-2 chat-open" data-id="' + id + '" data-name="' + seekerName + '" data-status="' + status + '">View chat</button>';
+            }
+            html += '</div>';
+        });
+        $('#asHelperList').html(html);
+        $('#asHelperList .btn-success').on('click', function () {
+            var id = $(this).data('id');
+            $.post('/User/AcceptRequest', { helpRequestId: id }).done(function (d) {
+                if (d.success) load();
+            });
+        });
+        $('#asHelperList .btn-danger[data-reject="1"]').on('click', function () {
+            var id = $(this).data('id');
+            $.post('/User/RejectRequest', { helpRequestId: id }).done(function (d) {
+                if (d.success) load();
+            });
+        });
+        $('#asHelperList .chat-open').on('click', function () {
+            currentHelpRequestId = $(this).data('id');
+            currentOtherName = $(this).data('name');
+            currentChatStatus = ($(this).data('status') || '').toLowerCase();
+            openChat();
+        });
+    }
+
+    function openChat() {
+        $('#chatModalTitle').text('Chat with ' + currentOtherName);
+        var isCompleted = currentChatStatus === 'completed' || currentChatStatus === 'notcompleted';
+        if (isCompleted) {
+            $('#chatCompletedBanner').removeClass('d-none');
+            $('#chatSendArea').addClass('d-none');
+        } else {
+            $('#chatCompletedBanner').addClass('d-none');
+            $('#chatSendArea').removeClass('d-none');
+        }
+        $('#chatModal').modal('show');
+        refreshChat();
+    }
+
+    function refreshChat() {
+        if (!currentHelpRequestId) return;
+        $.getJSON('/User/GetChatMessages?helpRequestId=' + currentHelpRequestId).done(function (msgs) {
+            var myId = currentUserId;
+            var html = '';
+            (msgs || []).forEach(function (m) {
+                var sid = (m.SenderId || m.senderId || '').toString();
+                var isMe = sid === myId;
+                var text = m.MessageText || m.messageText || '';
+                var att = m.AttachmentPath || m.attachmentPath || '';
+                var inner = '';
+                if (text) {
+                    inner += $('<div/>').text(text).html();
+                }
+                if (att) {
+                    var safeAtt = att;
+                    var label = 'Attachment';
+                    var lower = safeAtt.toLowerCase();
+                    var isImage = lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.gif');
+                    if (isImage) {
+                        label = 'Image';
+                    } else if (lower.endsWith('.pdf')) {
+                        label = 'PDF';
+                    }
+                    var link;
+                    if (isImage) {
+                        link = '<a href="javascript:void(0)" data-img-src="' + safeAtt + '" class="text-info chat-open-image">' + label + '</a>';
+                    } else {
+                        link = '<a href="' + safeAtt + '" target="_blank" class="text-info">' + label + '</a>';
+                    }
+                    inner += (inner ? '<br />' : '') + link;
+                }
+                if (!inner) inner = '<span class="text-muted small">[empty]</span>';
+                html += '<div class="chat-msg ' + (isMe ? 'me' : 'them') + '">' + inner + '</div>';
+            });
+            $('#chatMessages').html(html || '<p class="text-muted small">No messages yet.</p>');
+            $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+        });
+    }
+
+    $(document).on('click', '.chat-open-image', function (e) {
+        e.preventDefault();
+        var src = $(this).data('img-src');
+        if (src) {
+            window.__peerAssistChatWasOpen = $('#chatModal').hasClass('show');
+            var chatEl = document.getElementById('chatModal');
+            if (window.__peerAssistChatWasOpen && chatEl) {
+                bootstrap.Modal.getInstance(chatEl)?.hide();
+            }
+            $('#imageViewerImg').attr('src', src);
+            var modalEl = document.getElementById('imageViewerModal');
+            if (modalEl) {
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+        }
+    });
+    $('#imageViewerClose').on('click', function () {
+        var modalEl = document.getElementById('imageViewerModal');
+        if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+        if (window.__peerAssistChatWasOpen) {
+            var chatEl = document.getElementById('chatModal');
+            if (chatEl) bootstrap.Modal.getOrCreateInstance(chatEl).show();
+            window.__peerAssistChatWasOpen = false;
+        }
+    });
+
+    $('#chatSendBtn').on('click', function () {
+        var isCompleted = currentChatStatus === 'completed' || currentChatStatus === 'notcompleted';
+        if (isCompleted) return;
+        var text = $('#chatInput').val();
+        var fileInput = document.getElementById('chatFile');
+        var file = fileInput && fileInput.files ? fileInput.files[0] : null;
+        if (!text && !file) return;
+        if (!currentHelpRequestId) return;
+
+        var fd = new FormData();
+        fd.append('helpRequestId', currentHelpRequestId);
+        fd.append('messageText', text || '');
+        if (file) {
+            fd.append('attachment', file);
+        }
+
+        $.ajax({
+            url: '/User/SendChatMessage',
+            method: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false
+        }).done(function (d) {
+            if (d && d.success) {
+                $('#chatInput').val('');
+                if (fileInput) fileInput.value = '';
+                refreshChat();
+            } else if (d && d.message) {
+                alert(d.message);
+            }
+        });
+    });
+
+    setInterval(function () {
+        if (currentHelpRequestId && $('#chatModal').hasClass('show')) refreshChat();
+    }, 3000);
+
+    load();
+});
+</script>
+}
+

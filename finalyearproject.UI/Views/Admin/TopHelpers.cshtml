@@ -1,0 +1,39 @@
+@{
+    ViewData["Title"] = "Top Helpers - Admin";
+    Layout = "_Layout";
+}
+<style>
+    .admin-page-wrap { padding: 30px; max-width: 900px; margin: 0 auto; }
+</style>
+<div class="admin-page-wrap">
+    <h2 class="mb-4" style="color:#e8f4f8;">🏆 Top Helpers (by helps given)</h2>
+    <p class="text-muted mb-4">Users who have completed the most help sessions.</p>
+    <div id="helpersGrid"></div>
+    <p class="text-muted small mt-3" id="helpersEmpty">No data yet.</p>
+</div>
+@section Scripts {
+    <script>
+        $(function () {
+            $.getJSON('/Admin/GetHelpStatistics').done(function (stats) {
+                var helpers = stats.HelperBreakdown || [];
+                if (helpers.length === 0) {
+                    $('#helpersEmpty').show();
+                    return;
+                }
+                $('#helpersEmpty').hide();
+                $('#helpersGrid').dxDataGrid({
+                    dataSource: helpers,
+                    keyExpr: 'UserId',
+                    showBorders: true,
+                    rowAlternationEnabled: true,
+                    paging: { pageSize: 20 },
+                    pager: { showInfo: true, showNavigationButtons: true },
+                    columns: [
+                        { dataField: 'Username', caption: 'User' },
+                        { dataField: 'HelpsGiven', caption: 'Helps given', dataType: 'number' }
+                    ]
+                });
+            });
+        });
+    </script>
+}

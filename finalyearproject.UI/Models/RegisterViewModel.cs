@@ -28,13 +28,5 @@ namespace finalyearproject.UI.Models
         [Compare("Password", ErrorMessage = "Passwords do not match")]
         [Display(Name = "Confirm Password")]
         public string ConfirmPassword { get; set; }
-
-        [Required(ErrorMessage = "CV is required")]
-        [Display(Name = "Upload CV")]
-        public IFormFile CV { get; set; }
-
-        [Url(ErrorMessage = "Invalid URL format")]
-        [Display(Name = "Portfolio URL (Optional)")]
-        public string PortfolioUrl { get; set; }
     }
 }

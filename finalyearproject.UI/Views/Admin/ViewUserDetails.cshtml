@@ -1,0 +1,87 @@
+﻿@model finalyearproject.Data.Models.Domain.User
+@{
+    ViewData["Title"] = "User Details";
+    var skills = ViewBag.UserSkills as IEnumerable<dynamic>;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #00bcd4; color: white;">
+                    <h3 class="mb-0">👤 User Details: @Model.Username</h3>
+                </div>
+                <div class="card-body">
+
+                    <!-- Basic Information -->
+                    <h5 class="mb-3">📝 Basic Information</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-2"><strong>Email:</strong> @Model.Email</div>
+                            <div class="mb-2"><strong>Phone:</strong> @Model.PhoneNumber</div>
+                            <div class="mb-2"><strong>Registration Date:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <strong>Portfolio:</strong>
+                                @if (!string.IsNullOrEmpty(Model.PortfolioUrl))
+                                {
+                                    <a href="@Model.PortfolioUrl" target="_blank">@Model.PortfolioUrl</a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not provided</span>
+                                }
+                            </div>
+                            <div class="mb-2">
+                                <strong>CV:</strong>
+                                @if (!string.IsNullOrEmpty(Model.CVPath))
+                                {
+                                    <a href="@Model.CVPath" target="_blank" class="btn btn-sm btn-info">
+                                        <i class="fas fa-download"></i> Download CV
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Skills & Experience -->
+                    <h5 class="mb-3">🎯 Skills & Experience</h5>
+                    <div id="skillsGrid"></div>
+
+                    <hr class="mt-4">
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="@Url.Action("PendingUsers")" class="btn btn-secondary">
+                                ← Back to List
+                            </a>
+                        </div>
+                        <div>
+                            <div id="btnReject" class="d-inline-block me-2"></div>
+                            <div id="btnApprove" class="d-inline-block"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden data for JavaScript -->
+<script type="text/javascript">
+    window.userData = {
+        userId: @Model.UserId,
+        username: "@Model.Username",
+        skills: @Html.Raw(Json.Serialize(skills ?? new List<dynamic>()))
+    };
+</script>
+
+@section Scripts {
+    <script src="~/js/viewuserdetails.js"></script>
+}
+

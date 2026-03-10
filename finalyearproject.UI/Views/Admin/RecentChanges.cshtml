@@ -1,0 +1,80 @@
+@{
+    ViewData["Title"] = "Recent Skill/CV Changes - Admin";
+    Layout = "_Layout";
+}
+<style>
+    .admin-page-wrap { padding: 30px; max-width: 1000px; margin: 0 auto; }
+</style>
+<div class="admin-page-wrap">
+    <h2 class="mb-4" style="color:#e8f4f8;">📝 Recent User Skill / CV Changes</h2>
+    <p class="text-muted mb-4">Click a row or View to see change details.</p>
+    <div id="recentChangesGrid"></div>
+</div>
+<div class="modal fade" id="recentChangeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#0a0f1d;border:1px solid rgba(255,255,255,0.12);">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                <h5 class="modal-title" id="recentChangeModalLabel" style="color:#e8f4f8;">Change Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="recentChangeModalBody" style="color:#c5d8e8;"></div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/adminIndex.js"></script>
+    <script>
+        $(function () {
+            $('#recentChangesGrid').dxDataGrid({
+                dataSource: "/Admin/GetRecentUserChanges",
+                keyExpr: "userId",
+                showBorders: true,
+                rowAlternationEnabled: true,
+                columnAutoWidth: true,
+                paging: { pageSize: 20 },
+                pager: { showInfo: true, showNavigationButtons: true },
+                onRowClick: function (e) { openRecentChangeModal(e.data); },
+                columns: [
+                    {
+                        caption: "User",
+                        width: 220,
+                        cellTemplate: function (container, options) {
+                            var u = options.data;
+                            var name = u.username || u.Username || 'Unknown';
+                            var initial = (name || 'U').charAt(0).toUpperCase();
+                            var html = '<div style="display:flex;align-items:center;gap:10px;">' +
+                                '<div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:0.8rem;">' + initial + '</div>' +
+                                '<div><div style="font-weight:600;">' + name + '</div><div style="font-size:0.75rem;color:#6b8fa8;">ID: ' + (u.userId || u.UserId || '') + '</div></div></div>';
+                            $(container).html(html);
+                        }
+                    },
+                    {
+                        caption: "Changes",
+                        width: 140,
+                        cellTemplate: function (c, o) {
+                            var n = o.data.changeCount || 0;
+                            $(c).text(n + ' change' + (n !== 1 ? 's' : ''));
+                        }
+                    },
+                    {
+                        caption: "Last updated",
+                        width: 170,
+                        cellTemplate: function (c, o) {
+                            var v = o.data.latestChangedAt || o.data.latestchangedat;
+                            $(c).text(v ? new Date(v).toLocaleString() : '—');
+                        }
+                    },
+                    {
+                        caption: "",
+                        width: 90,
+                        cellTemplate: function (container, options) {
+                            var btn = $('<button type="button" class="btn btn-sm btn-outline-info">View</button>');
+                            btn.on('click', function (ev) { ev.stopPropagation(); openRecentChangeModal(options.data); });
+                            $(container).append(btn);
+                        }
+                    }
+                ]
+            });
+        });
+    </script>
+}

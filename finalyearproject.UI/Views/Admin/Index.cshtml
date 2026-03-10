@@ -1,6 +1,160 @@
-﻿@{
+@{
     ViewData["Title"] = "Admin Dashboard";
+    Layout = "_Layout";
 }
 
-<h2>Admin Dashboard</h2>
-<p>Welcome, Admin @User.Identity?.Name!</p>
+<style>
+    .admin-dashboard-wrapper {
+        padding: 30px;
+        max-width: 1300px;
+        margin: 0 auto;
+    }
+
+    .admin-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 32px;
+    }
+
+    .admin-card {
+        background: #16213e;
+        border-radius: 14px;
+        padding: 20px;
+        border: 1px solid rgba(255,255,255,0.08);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .admin-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 14px 14px 0 0;
+        }
+
+        .admin-card.pending::before { background: #f6ad55; }
+        .admin-card.approved::before { background: #48bb78; }
+        .admin-card.rejected::before { background: #f56565; }
+
+    .admin-card-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6b8fa8;
+        margin-bottom: 8px;
+    }
+
+    .admin-card-number {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #ffffff;
+    }
+
+    .admin-section-title {
+        color: #e8f4f8;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    #recentUsersGrid {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.08);
+        margin-top: 10px;
+    }
+</style>
+
+<div class="admin-dashboard-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-1" style="color:#e8f4f8;">👋 Welcome, @User.Identity?.Name</h2>
+            <div class="text-muted small">Quick snapshot of the platform activity.</div>
+        </div>
+        <div>
+            <a class="btn btn-outline-light btn-sm me-2" asp-controller="Admin" asp-action="PendingUsers">Review pending users</a>
+        </div>
+    </div>
+
+    <div class="admin-grid-3 mb-4">
+        <div class="admin-card pending">
+            <div class="admin-card-title">Waiting for approval</div>
+            <div class="admin-card-number" id="dashPending">—</div>
+        </div>
+        <div class="admin-card approved">
+            <div class="admin-card-title">Approved users</div>
+            <div class="admin-card-number" id="dashApproved">—</div>
+        </div>
+        <div class="admin-card rejected">
+            <div class="admin-card-title">Rejected / removed</div>
+            <div class="admin-card-number" id="dashRejected">—</div>
+        </div>
+    </div>
+
+    <h5 class="admin-section-title">Help statistics</h5>
+    <div class="admin-grid-3 mb-4">
+        <div class="admin-card approved">
+            <div class="admin-card-title">Users who provided help</div>
+            <div class="admin-card-number" id="dashTotalHelpers">—</div>
+        </div>
+        <div class="admin-card approved">
+            <div class="admin-card-title">Total helps given</div>
+            <div class="admin-card-number" id="dashTotalHelps">—</div>
+        </div>
+        <div class="admin-card rejected">
+            <div class="admin-card-title">Requests not helped (Pending/Rejected)</div>
+            <div class="admin-card-number" id="dashRequestsNotHelped">—</div>
+        </div>
+    </div>
+    <div class="admin-section-title mt-4 mb-3">Quick links</div>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="AllUsers">
+            📋 All Users &amp; Recently Registered
+        </a>
+        <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="TopHelpers">
+            🏆 Top Helpers
+        </a>
+        <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="HelperPerformance">
+            ⚠️ Helper Performance (Who Did Not Help)
+        </a>
+        <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="RecentChanges">
+            📝 Recent Skill / CV Changes
+        </a>
+        <a class="btn btn-primary btn-sm" asp-controller="Admin" asp-action="PendingUsers">
+            ⏳ Review Pending Users
+        </a>
+    </div>
+</div>
+
+<!-- Modal for recent change details -->
+<div class="modal fade" id="recentChangeModal" tabindex="-1" aria-labelledby="recentChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#0a0f1d;border:1px solid rgba(255,255,255,0.12);">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                <h5 class="modal-title" id="recentChangeModalLabel" style="color:#e8f4f8;">Change Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="recentChangeModalBody" style="color:#c5d8e8;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Skills modal so admin can view/remove user skills -->
+<div class="modal fade" id="skillsModal" tabindex="-1" aria-labelledby="skillsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="background:#0a0f1d;border:1px solid rgba(255,255,255,0.12);">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                <h5 class="modal-title" id="skillsModalLabel" style="color:#e8f4f8;">Skills Portfolio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="skillsModalBody" style="color:#c5d8e8;"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/adminIndex.js"></script>
+}

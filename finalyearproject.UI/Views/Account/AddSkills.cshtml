@@ -1,0 +1,313 @@
+@* @{
+    ViewData["Title"] = "Add Skills - Step 2 of 2";
+    var username = ViewBag.Username;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header text-white text-center" style="background-color: #00bcd4;">
+                <h3 class="mb-0">Add Your Skills, Experience & Documents - Step 2 of 2</h3>
+                <p class="mb-0">Hello, <strong>@username</strong>! Tell us about your expertise</p>
+            </div>
+            <div class="card-body p-4" style="background-color: #f5f5f5;">
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- Progress Info -->
+                <div class="alert alert-info mb-4">
+                    <strong>ℹ️ Requirements:</strong> You must add at least one skill and upload your CV to proceed.
+                </div>
+
+                <!-- CV Upload Section -->
+                <div class="card mb-4 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">📄 Upload Documents</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Upload CV (Required) *</label>
+                                <input type="file" id="cvUpload" class="form-control" accept=".pdf,.doc,.docx" />
+                                <small class="text-muted">Accepted formats: PDF, DOC, DOCX (Max 5MB)</small>
+                                <div id="cvStatus" class="mt-2"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Portfolio URL (Optional)</label>
+                                <div id="txtPortfolio"></div>
+                                <small class="text-muted">GitHub, LinkedIn, Personal Website, etc.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Added Skills List -->
+                <div id="addedSkillsList" class="mb-4">
+                    <h5 class="mb-3">Your Skills:</h5>
+                    <div id="skillsContainer"></div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Add New Skill Form -->
+                <h5 class="mb-3">Add a New Skill:</h5>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Field</label>
+                        <div id="ddField"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Skill</label>
+                        <div id="ddSkill"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Sub-Skill(s)</label>
+                        <div id="ddSubSkill"></div>
+                        <small class="text-muted">You can select multiple sub-skills</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Experience Level</label>
+                        <div id="ddExperience"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Available Days</label>
+                        <div id="tagAvailableDays"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Available From</label>
+                        <div id="timeStart"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Available To</label>
+                        <div id="timeEnd"></div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-between mb-3">
+                    <button type="button" class="btn btn-secondary" onclick="goBackToRegister()">
+                        ← Back to Basic Info
+                    </button>
+                    <div id="btnAddSkill"></div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="goBackToRegister()">
+                        ← Back
+                    </button>
+                    <div id="btnProceedToVerification"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/addskills.js"></script>
+} *@
+
+@{
+    ViewData["Title"] = "Add Skills - Step 2 of 2";
+    var username = ViewBag.Username;
+    bool isLoggedInUser = ViewBag.IsLoggedInUser != null && (bool)ViewBag.IsLoggedInUser;
+}
+
+<style>
+    /* Professional Dark Theme - Matching System Home */
+    body {
+        background-color: #0a0f1d;
+        color: #ffffff;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    .card {
+        background-color: #161b2c !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 15px !important;
+    }
+
+    /* FIX 1: Selected Text and Placeholder visibility */
+    .dx-texteditor-input,
+    .form-control,
+    input[type="text"] {
+        color: #ffffff !important; /* Bright White for selected values */
+        -webkit-text-fill-color: #ffffff !important;
+    }
+
+    .dx-placeholder, ::placeholder {
+        color: #aaaaaa !important; /* Slightly dimmer silver for hints */
+        opacity: 1 !important;
+    }
+
+    /* FIX 2: Darken the Dropdown List (The popup menu) */
+    .dx-overlay-content,
+    .dx-dropdownlist-popup-wrapper,
+    .dx-list {
+        background-color: #1e263d !important; /* Dark background for the list */
+        border: 1px solid #7c3aed !important;
+    }
+
+    .dx-list-item {
+        color: #ffffff !important; /* White text for options */
+    }
+
+        .dx-list-item.dx-state-hover {
+            background-color: rgba(124, 58, 237, 0.3) !important; /* Purple highlight on hover */
+        }
+
+    /* FIX 3: Styling the "Choose File" button to not be too bright */
+    input[type="file"]::file-selector-button {
+        background-color: #1e263d;
+        color: white;
+        border: 1px solid #7c3aed;
+        padding: 5px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+        input[type="file"]::file-selector-button:hover {
+            background-color: #7c3aed;
+        }
+
+    /* Input Box styling */
+    .form-control, .dx-texteditor {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(124, 58, 237, 0.4) !important;
+    }
+
+    /* Labels and Titles */
+    .form-label, label, h5, .section-title {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+
+    .custom-header {
+        background-color: #1e263d !important;
+        border-bottom: 2px solid #7c3aed;
+        padding: 1.5rem;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+</style>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-10">
+        <div class="card shadow-lg">
+            <div class="custom-header text-center">
+                @if (isLoggedInUser)
+                {
+                    <h3 class="fw-bold mb-0">Update Your Skills & Availability</h3>
+                    <p class="mb-0 text-white-50">Hello, <strong>@username</strong>! Keep your expertise up to date.</p>
+                }
+                else
+                {
+                    <h3 class="fw-bold mb-0">Add Expertise & Documents</h3>
+                    <p class="mb-0 text-white-50">Hello, <strong>@username</strong>! Let's complete your profile.</p>
+                }
+            </div>
+
+            <div class="card-body p-4 p-lg-5">
+                @if (!isLoggedInUser)
+                {
+                    <div class="mb-5" id="cvSection">
+                        <h5 class="section-title border-bottom pb-2">Professional Documents</h5>
+                        <div class="row mt-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Upload CV (Required) *</label>
+                                <input type="file" id="cvUpload" class="form-control" accept=".pdf,.doc,.docx" />
+                                <div id="cvStatus" class="mt-2 text-success"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Portfolio URL (Optional)</label>
+                                <div id="txtPortfolio"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div id="addedSkillsList" class="mb-5">
+                    <h5 class="section-title border-bottom pb-2">Your Skills Portfolio</h5>
+                    <div id="skillsContainer" class="mt-2"></div>
+                </div>
+
+                <div class="p-4 rounded-3" style="background: rgba(255,255,255,0.02);">
+                    <h5 class="mb-4" style="color: #a78bfa;">Add a New Skill Set</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Field of Expertise</label>
+                            <div id="ddField"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Primary Skill</label>
+                            <div id="ddSkill"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Sub-Skill(s)</label>
+                            <div id="ddSubSkill"></div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Experience Level</label>
+                            <div id="ddExperience"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Availability Days</label>
+                            <div id="tagAvailableDays"></div>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Available From</label>
+                            <div id="timeStart"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Available To</label>
+                            <div id="timeEnd"></div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <div id="btnAddSkill"></div>
+                    </div>
+
+
+                    
+                </div>
+
+               
+                @if (!isLoggedInUser)
+                {
+                    <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-secondary">
+                        <button type="button" class="btn btn-outline-light px-4" onclick="goBackToRegister()">
+                            ← Back to Basic Info
+                        </button>
+                        <div id="btnProceedToVerification"></div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.addSkillsConfig = {
+            isLoggedInUser: @((isLoggedInUser ? "true" : "false"))
+        };
+    </script>
+    <script src="~/js/addskills.js"></script>
+}

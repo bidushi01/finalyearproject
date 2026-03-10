@@ -3,12 +3,14 @@ using finalyearproject.Data.Repository;
 using finalyearproject.Data.Services;
 using finalyearproject.Data.Helper;
 using finalyearproject.Data.Models.Domain;
+using finalyearproject.UI.Hubs;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 // Register EmailSettings for IOptions pattern
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
@@ -58,6 +60,8 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<HelpHub>("/helpHub");
 
 app.MapControllerRoute(
     name: "default",

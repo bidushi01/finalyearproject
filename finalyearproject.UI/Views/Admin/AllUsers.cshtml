@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "All Users - Admin";
+    Layout = "_Layout";
+}
+<style>
+    .admin-page-wrap { padding: 30px; max-width: 1400px; margin: 0 auto; }
+    .admin-section-title { color: #e8f4f8; font-weight: 700; margin-bottom: 16px; }
+</style>
+<div class="admin-page-wrap">
+    <h2 class="mb-4" style="color:#e8f4f8;">📋 All Users &amp; Recently Registered</h2>
+    <p class="text-muted mb-4">Full list of users with registration details, status, CV and skills.</p>
+    <div id="allUsersGrid"></div>
+</div>
+<div class="modal fade" id="skillsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="background:#0a0f1d;border:1px solid rgba(255,255,255,0.12);">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                <h5 class="modal-title" id="skillsModalLabel" style="color:#e8f4f8;">Skills Portfolio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="skillsModalBody" style="color:#c5d8e8;"></div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/adminIndex.js"></script>
+    <script>
+        $(function () {
+            fetch('/Admin/GetPendingUsers').then(function (r) { return r.json(); }).then(function (users) {
+                if (!Array.isArray(users)) users = [];
+                users.sort(function (a, b) {
+                    var da = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                    var db = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                    return db - da;
+                });
+                $('#allUsersGrid').dxDataGrid({
+                    dataSource: users,
+                    keyExpr: 'userId',
+                    showBorders: true,
+                    rowAlternationEnabled: true,
+                    paging: { pageSize: 25 },
+                    pager: { showInfo: true, showNavigationButtons: true, showPageSizeSelector: true },
+                    columns: [
+                        {
+                            caption: 'User',
+                            width: 280,
+                            cellTemplate: function (container, options) {
+                                var u = options.data;
+                                var initial = (u.username || '?').charAt(0).toUpperCase();
+                                var html = '<div style="display:flex;align-items:center;gap:10px;">' +
+                                    '<div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#00d2d2,#0077ff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;">' + initial + '</div>' +
+                                    '<div><div style="font-weight:700;color:#e8f4f8;">' + (u.username || '') + '</div>' +
+                                    '<div style="font-size:0.8rem;color:#6b8fa8;">' + (u.email || '') + '</div></div></div>';
+                                $(container).html(html);
+                            }
+                        },
+                        { dataField: 'phoneNumber', caption: 'Phone', width: 140 },
+                        { dataField: 'createdAt', caption: 'Registered', dataType: 'date', format: 'dd MMM yyyy', width: 130 },
+                        {
+                            caption: 'Status',
+                            width: 120,
+                            cellTemplate: function (c, o) {
+                                var u = o.data;
+                                var html;
+                                if (u.isApprovedByAdmin)
+                                    html = '<span style="background:rgba(72,187,120,0.15);color:#48bb78;border:1px solid rgba(72,187,120,0.3);padding:3px 9px;border-radius:20px;font-size:0.72rem;font-weight:700;">Approved</span>';
+                                else if (u.isRejected)
+                                    html = '<span style="background:rgba(245,101,101,0.15);color:#f56565;border:1px solid rgba(245,101,101,0.3);padding:3px 9px;border-radius:20px;font-size:0.72rem;font-weight:700;">Rejected</span>';
+                                else
+                                    html = '<span style="background:rgba(246,173,85,0.15);color:#f6ad55;border:1px solid rgba(246,173,85,0.3);padding:3px 9px;border-radius:20px;font-size:0.72rem;font-weight:700;">Pending</span>';
+                                $(c).html(html);
+                            }
+                        },
+                        {
+                            caption: 'CV',
+                            width: 90,
+                            cellTemplate: function (c, o) {
+                                var u = o.data;
+                                if (!u.cvPath) { $(c).text('—'); return; }
+                                var link = $('<a>').attr('href', u.cvPath).attr('target', '_blank').addClass('btn btn-sm btn-outline-light').text('CV');
+                                $(c).append(link);
+                            }
+                        },
+                        {
+                            caption: 'Skills',
+                            width: 110,
+                            cellTemplate: function (c, o) {
+                                var btn = $('<button type="button" class="btn btn-sm btn-outline-info">View</button>');
+                                btn.on('click', function () { openSkillsModal(o.data); });
+                                $(c).append(btn);
+                            }
+                        }
+                    ]
+                });
+            });
+        });
+    </script>
+}

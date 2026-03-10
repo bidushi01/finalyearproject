@@ -1,8 +1,301 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@* @{
+    ViewData["Title"] = "Professional Peer-to-Peer Help";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="py-5 position-relative">
+    <div class="container py-5 mt-4">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6" data-aos="fade-right">
+                <div class="d-inline-flex align-items-center rounded-pill px-3 py-1 mb-4" style="background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3);">
+                    <span style="color: #a78bfa; font-size: 0.85rem; font-weight: 600;">Verified Talent Ecosystem</span>
+                </div>
+                <h1 class="display-3 mb-4">
+                    Verified Peer-to-Peer <br />
+                    <span style="background: linear-gradient(90deg, #a78bfa, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Skill Assistance</span>
+                </h1>
+                <p class="mb-5 fs-5">
+                    Bridge technical gaps through a structured skill hierarchy. Connect with
+                    <strong>admin-approved experts</strong> and build your professional ranking
+                    through verified matching.
+                </p>
+                <div class="d-flex gap-3">
+                    <a asp-action="Register" class="btn btn-main">Get Verified Now</a>
+                    <a href="#process" class="btn btn-outline-light px-4 py-3 border-secondary border-opacity-50">Explore System</a>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="zoom-in">
+                <div class="position-relative p-2 rounded-5" style="background: linear-gradient(45deg, rgba(124, 58, 237, 0.2), transparent);">
+                    <img src="~/Content/peer-support.jpeg" class="img-fluid rounded-5 shadow-2xl" alt="Peer Collaboration" style="width:100%; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section id="process" class="py-5" style="background: rgba(255,255,255,0.01);">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="display-5">The PeerAssist Ecosystem</h2>
+            <p>A structured approach to verified expertise.</p>
+        </div>
+        <div class="row g-4 mt-2">
+            <div class="col-md-3" data-aos="fade-up">
+                <div class="p-4 rounded-4 h-100" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="text-primary mb-3 fs-3 fw-bold opacity-50">01</div>
+                    <h5 class="text-white">Verify</h5>
+                    <p class="small">Register and pass manual admin vetting to ensure network quality.</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+                <div class="p-4 rounded-4 h-100" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="text-primary mb-3 fs-3 fw-bold opacity-50">02</div>
+                    <h5 class="text-white">Map Skills</h5>
+                    <p class="small">Define expertise down to the micro-level using our skill hierarchy.</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+                <div class="p-4 rounded-4 h-100" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="text-primary mb-3 fs-3 fw-bold opacity-50">03</div>
+                    <h5 class="text-white">Smart Match</h5>
+                    <p class="small">Connect with peers based on availability and experience levels.</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+                <div class="p-4 rounded-4 h-100" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="text-primary mb-3 fs-3 fw-bold opacity-50">04</div>
+                    <h5 class="text-white">Rank & Build</h5>
+                    <p class="small">Earn ratings to build a recruiter-ready professional profile.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container py-5">
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-right">
+                <div class="p-5 rounded-5 h-100" style="background: #0f172a;">
+                    <h3 class="h4 mb-4">Seeker</h3>
+                    <p class="small mb-4">Match with top-tier helpers for granular sub-skills and grow your knowledge faster.</p>
+                    <a href="#" class="text-primary text-decoration-none fw-bold small">Explore Flow →</a>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up">
+                <div class="p-5 rounded-5 h-100 border border-primary border-opacity-20">
+                    <h3 class="h4 mb-4">Helper</h3>
+                    <p class="small mb-4">Share your verified expertise, earn points, and build your professional ranking.</p>
+                    <a href="#" class="text-primary text-decoration-none fw-bold small">Earn Points →</a>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-left">
+                <div class="p-5 rounded-5 h-100" style="background: #1e1b4b;">
+                    <h3 class="h4 mb-4 text-primary">Recruiter</h3>
+                    <p class="small mb-4 text-white opacity-75">Identify high-potential talent through peer-rated performance metrics.</p>
+                    <a href="#" class="text-white text-decoration-none fw-bold small">Business Portal →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-dark border-top border-bottom border-secondary border-opacity-10">
+    <div class="container text-center py-4">
+        <div class="row g-4 opacity-50">
+            <div class="col-md-3"><span>Admin Verified</span></div>
+            <div class="col-md-3"><span>JWT Encrypted</span></div>
+            <div class="col-md-3"><span>OTP Verification</span></div>
+            <div class="col-md-3"><span>Structured Data</span></div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container py-5">
+        <div class="p-5 rounded-5 text-center shadow-2xl" style="background: linear-gradient(135deg, #1e1b4b, #0a0f1d); border: 1px solid rgba(255,255,255,0.05);">
+            <h2 class="display-5 mb-4">Ready to Verify Your Expertise?</h2>
+            <p class="mb-5 mx-auto opacity-75" style="max-width: 600px;">Join the network where skills are measured by peer results, not just claims.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a asp-action="Register" class="btn btn-main px-5 py-3">User Registration</a>
+                <button class="btn btn-outline-light px-5 py-3">Recruiter Access</button>
+            </div>
+        </div>
+    </div>
+</section> *@
+
+@{
+    ViewData["Title"] = "Professional Peer-to-Peer Help";
+}
+
+<section class="py-5 position-relative">
+    <div class="container py-5 mt-4">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6" data-aos="fade-right">
+                <div class="d-inline-flex align-items-center rounded-pill px-3 py-1 mb-4" style="background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3);">
+                    <span style="color: #a78bfa; font-size: 0.85rem; font-weight: 600;">Verified Talent Ecosystem</span>
+                </div>
+                <h1 class="display-3 mb-4">
+                    Verified Peer-to-Peer <br />
+                    <span style="background: linear-gradient(90deg, #a78bfa, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Skill Assistance</span>
+                </h1>
+                <p class="mb-5 fs-5">
+                    Empowering users to master new technologies through collaborative learning.
+                    Our system connects you with verified peers to solve real-world problems
+                    and build a professional ranking through shared knowledge.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="#process"  class="btn btn-main px-4 py-3">Explore System</a>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="zoom-in">
+                <div class="position-relative p-2 rounded-5" style="background: linear-gradient(45deg, rgba(124, 58, 237, 0.2), transparent);">
+                    <img src="~/Content/peer-support.jpeg" class="img-fluid rounded-5 shadow-2xl" alt="Peer Collaboration" style="width:100%; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="process" class="py-5 bg-dark">
+    
+    
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5">
+                <h2 class="display-5 fw-bold mb-4">A Growing Community</h2>
+                <p class="text-white-50 fs-5 mb-4">Collaborate with thousands of active learners and experts. Our ecosystem thrives on direct interaction and mutual growth.</p>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-4 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-20 text-center">
+                            <h3 class="fw-bold mb-0 text-primary">10k+</h3>
+                            <p class="small mb-0 opacity-50">Active Users</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-4 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-20 text-center">
+                            <h3 class="fw-bold mb-0 text-primary">500+</h3>
+                            <p class="small mb-0 opacity-50">Skill Sets</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <img src="~/Content/image1.png" class="img-fluid rounded-4 shadow-lg mb-3" alt="Meeting" style="height: 400px; object-fit: cover; width: 100%;">
+                    </div>
+                    <div class="col-6">
+                        <img src="~/Content/image2.png" class="img-fluid rounded-4 shadow-lg mb-3" alt="Workshop" style="height: 190px; object-fit: cover; width: 100%;">
+                        <img src="~/Content/image3.png" class="img-fluid rounded-4 shadow-lg" alt="Matching" style="height: 190px; object-fit: cover; width: 100%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container py-5">
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-right">
+                <div class="p-5 rounded-5 h-100" style="background: #0f172a;">
+                    <h3 class="h4 mb-4">Seeker</h3>
+                    <p class="small mb-4">Match with top-tier helpers for granular sub-skills and grow your knowledge faster.</p>
+                    <a href="#" class="text-primary text-decoration-none fw-bold small">Explore Flow →</a>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up">
+                <div class="p-5 rounded-5 h-100 border border-primary border-opacity-20">
+                    <h3 class="h4 mb-4">Helper</h3>
+                    <p class="small mb-4">Share your verified expertise, earn points, and build your professional ranking.</p>
+                    <a href="#" class="text-primary text-decoration-none fw-bold small">Earn Points →</a>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-left">
+                <div class="p-5 rounded-5 h-100" style="background: #1e1b4b;">
+                    <h3 class="h4 mb-4 text-primary">Recruiter</h3>
+                    <p class="small mb-4 text-white opacity-75">Identify high-potential talent through peer-rated performance metrics.</p>
+                    <a href="#" class="text-white text-decoration-none fw-bold small">Business Portal →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5" style="background: rgba(124, 58, 237, 0.02);">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="display-6 fw-bold">Common Questions</h2>
+            <p class="text-white-50">Everything you need to know about the platform.</p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion accordion-flush" id="faqAccordion">
+                    <div class="accordion-item bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                How does the matching system work?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-white-50">
+                                Our system uses micro-mapping technology. When you request help, we scan our database for peers who have specifically mastered the sub-skill you need, matching you based on their rating and availability.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Is my data secure during sessions?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-white-50">
+                                Absolutely. We use JWT encryption and OTP verification to ensure that only authorized users can access communication channels and profile data.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Can I use PeerAssist for hiring?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-white-50">
+                                Yes! Recruiters can access a dedicated portal to view peer-validated performance metrics, allowing them to find top-tier talent based on actual results rather than just resumes.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container py-5">
+        <div class="p-5 rounded-5 text-center shadow-2xl" style="background: linear-gradient(135deg, #1e1b4b, #0a0f1d); border: 1px solid rgba(255,255,255,0.05);">
+            <h2 class="display-5 mb-4">Ready to Explore?</h2>
+            <p class="mb-5 mx-auto opacity-75" style="max-width: 600px;">Join the network where skills are measured by peer results, not just claims.</p>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="alert alert-info d-inline-block mb-0" style="background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #a78bfa; border-radius: 10px;">
+                    You're already logged in as <strong>@User.Identity.Name</strong>. Logout to register a new account.
+                </div>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline mt-3">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-light px-5 py-3">Logout to Register</button>
+                </form>
+            }
+            else
+            {
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-action="Register" asp-controller="Account" class="btn btn-main px-5 py-3">User Registration</a>
+                    <button class="btn btn-outline-light px-5 py-3">Recruiter Access</button>
+                </div>
+            }
+        </div>
+    </div>
+</section>

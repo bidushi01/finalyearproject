@@ -1,41 +1,273 @@
-﻿@model finalyearproject.UI.Models.VerifyOTPViewModel
-
+﻿@* @model finalyearproject.UI.Models.VerifyOTPViewModel
 @{
-    ViewData["Title"] = "Verify OTP";
+    ViewData["Title"] = "Verify Email";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="card shadow">
-            <div class="card-header bg-success text-white">
-                <h3 class="mb-0 text-center">Verify Email</h3>
-            </div>
-            <div class="card-body p-4">
-                <div class="alert alert-info text-center">
-                    <p class="mb-0">Code sent to: <strong>@Model.Email</strong></p>
+<style>
+    body {
+        background-color: #0a0f1d;
+        color: #ffffff;
+    }
+
+    .custom-card {
+        background: #161b2c;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 2rem;
+    }
+
+    .custom-card-header {
+        background: linear-gradient(135deg, #1e1b4b, #0a0f1d);
+        border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+        border-top-left-radius: 2rem !important;
+        border-top-right-radius: 2rem !important;
+        padding: 2.5rem;
+    }
+
+    .info-badge {
+        background: rgba(124, 58, 237, 0.15);
+        border: 1px solid rgba(124, 58, 237, 0.4);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        color: #ffffff;
+    }
+
+    .otp-input {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 2px solid #7c3aed !important;
+        color: #ffffff !important; /* Pure white for the code digits */
+        font-weight: 800;
+        font-size: 2.5rem !important;
+        border-radius: 1rem !important;
+    }
+
+    .btn-complete {
+        background: linear-gradient(90deg, #a78bfa, #7c3aed);
+        border: none;
+        color: white !important;
+        font-weight: 700;
+        padding: 1rem;
+        border-radius: 0.75rem;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card custom-card shadow-2xl">
+                <div class="custom-card-header text-center">
+                    <h2 class="display-6 fw-bold mb-0">Verify Email</h2>
+                    <p class="text-white-50 mt-2">The final step to join PeerAssist</p>
                 </div>
 
-                <form asp-action="VerifyOTP" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" asp-for="Email" />
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-
-                    <div class="mb-4">
-                        <label asp-for="OTPCode" class="form-label fw-bold">Enter 6-Digit OTP</label>
-                        <input asp-for="OTPCode" class="form-control form-control-lg text-center"
-                               style="letter-spacing: 0.5em;" maxlength="6" autofocus />
-                        <span asp-validation-for="OTPCode" class="text-danger"></span>
+                <div class="card-body p-4 p-md-5">
+                    <div class="info-badge text-center mb-4">
+                        <small class="d-block text-white-50 mb-1">Verification code sent to:</small>
+                        <strong class="text-info fs-5">@Model.Email</strong>
                     </div>
 
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-success btn-lg">Verify</button>
-                    </div>
-                </form>
+                    <form asp-action="VerifyOTP" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Email" />
 
-                <hr class="my-4">
-                <div class="text-center">
-                    <p class="text-muted mb-2">Didn't receive code?</p>
-                    <button id="resendBtn" class="btn btn-link">Resend OTP</button>
+                        <div class="mb-5 text-center">
+                            <label asp-for="OTPCode" class="form-label fw-bold mb-3" style="color: #c4b5fd; font-size: 1.1rem;">Enter 6-Digit OTP</label>
+                            <input asp-for="OTPCode" class="form-control otp-input text-center"
+                                   inputmode="numeric" autofocus placeholder="000000" autocomplete="off" />
+                            <span asp-validation-for="OTPCode" class="text-danger small fw-bold mt-2 d-block"></span>
+                        </div>
+
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-complete">
+                                COMPLETE REGISTRATION
+                            </button>
+                            <a asp-action="AddSkills" class="btn btn-link text-white-50 text-decoration-none text-center">
+                                &larr; Back to Skills & CV
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 pt-4 border-top border-secondary text-center">
+                        <p class="text-white-50 small mb-2">Didn't receive the security code?</p>
+                        <button id="resendBtn" class="btn btn-sm btn-outline-info rounded-pill px-4">
+                            Resend OTP
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> *@
+
+
+@model finalyearproject.UI.Models.VerifyOTPViewModel
+@{
+    ViewData["Title"] = "Verify Email";
+}
+
+<style>
+    body {
+        background-color: #0a0f1d;
+        color: #ffffff;
+    }
+
+    .custom-card {
+        background: #161b2c;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 2rem;
+    }
+
+    .custom-card-header {
+        background: linear-gradient(135deg, #1e1b4b, #0a0f1d);
+        border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+        border-top-left-radius: 2rem !important;
+        border-top-right-radius: 2rem !important;
+        padding: 2.5rem;
+    }
+
+    .info-badge {
+        background: rgba(124, 58, 237, 0.15);
+        border: 1px solid rgba(124, 58, 237, 0.4);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        color: #ffffff;
+    }
+
+    .otp-input {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 2px solid #7c3aed !important;
+        color: #ffffff !important;
+        font-weight: 800;
+        font-size: 2.5rem !important;
+        border-radius: 1rem !important;
+        letter-spacing: 0.5rem;
+    }
+
+        .otp-input:focus {
+            border-color: #a78bfa !important;
+            box-shadow: 0 0 0 0.2rem rgba(167, 139, 250, 0.25) !important;
+        }
+
+    .btn-complete {
+        background: linear-gradient(90deg, #a78bfa, #7c3aed);
+        border: none;
+        color: white !important;
+        font-weight: 700;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        transition: all 0.3s;
+    }
+
+        .btn-complete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-complete:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    /* ✅ Error message styling */
+    .validation-summary-errors {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+        .validation-summary-errors ul {
+            margin-bottom: 0;
+            padding-left: 1.5rem;
+        }
+
+        .validation-summary-errors li {
+            color: #fca5a5;
+        }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card custom-card shadow-2xl">
+                <div class="custom-card-header text-center">
+                    <h2 class="display-6 fw-bold mb-0">Verify Email</h2>
+                    <p class="text-white-50 mt-2">The final step to join PeerAssist</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <!-- ✅ ADDED: Validation Summary -->
+                    <div asp-validation-summary="All" class="validation-summary-errors"></div>
+
+                    <!-- Success/Error Messages from TempData -->
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div class="info-badge text-center mb-4">
+                        <small class="d-block text-white-50 mb-1">Verification code sent to:</small>
+                        <strong class="text-info fs-5">@Model.Email</strong>
+                    </div>
+
+                    <form asp-action="VerifyOTP" method="post" id="otpForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Email" />
+
+                        <div class="mb-5 text-center">
+                            <label asp-for="OTPCode" class="form-label fw-bold mb-3"
+                                   style="color: #c4b5fd; font-size: 1.1rem;">
+                                Enter 6-Digit OTP
+                            </label>
+
+                            <!-- ✅ FIXED: Proper OTP input with maxlength -->
+                            <input asp-for="OTPCode"
+                                   class="form-control otp-input text-center"
+                                   type="text"
+                                   inputmode="numeric"
+                                   maxlength="6"
+                                   pattern="[0-9]{6}"
+                                   autofocus
+                                   placeholder="000000"
+                                   autocomplete="off"
+                                   required
+                                   id="otpInput" />
+
+                            <span asp-validation-for="OTPCode" class="text-danger small fw-bold mt-2 d-block"></span>
+                        </div>
+
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-complete" id="submitBtn">
+                                <span id="btnText">COMPLETE REGISTRATION</span>
+                                <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </span>
+                            </button>
+
+                            <a asp-action="AddSkills" class="btn btn-link text-white-50 text-decoration-none text-center">
+                                &larr; Back to Skills & CV
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 pt-4 border-top border-secondary text-center">
+                        <p class="text-white-50 small mb-2">Didn't receive the security code?</p>
+                        <button id="resendBtn" class="btn btn-sm btn-outline-info rounded-pill px-4">
+                            <span id="resendText">Resend OTP</span>
+                            <span id="resendSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -44,23 +276,78 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        document.getElementById('resendBtn').addEventListener('click', function() {
-            const email = '@Model.Email';
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = 'Sending...';
 
-            fetch('@Url.Action("ResendOTP")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'email=' + encodeURIComponent(email)
-            })
-            .then(r => r.json())
-            .then(data => {
-                alert(data.success ? data.message : 'Error');
-                btn.disabled = false;
-                btn.textContent = 'Resend OTP';
+    <script>
+        $(document).ready(function() {
+            console.log("✅ VerifyOTP page loaded");
+
+            // ✅ Auto-format OTP input (only allow numbers)
+            $('#otpInput').on('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+
+                if (this.value.length > 6) {
+                    this.value = this.value.slice(0, 6);
+                }
+            });
+
+            // ✅ Form submission with loading state
+            $('#otpForm').on('submit', function() {
+                const otpValue = $('#otpInput').val().trim();
+
+                console.log("📤 Submitting OTP:", otpValue);
+
+                if (otpValue.length !== 6) {
+                    alert('⚠️ Please enter a 6-digit OTP code');
+                    return false;
+                }
+
+                // Show loading spinner
+                $('#btnText').addClass('d-none');
+                $('#btnSpinner').removeClass('d-none');
+                $('#submitBtn').prop('disabled', true);
+
+                return true;
+            });
+
+            // ✅ Resend OTP functionality
+            $('#resendBtn').on('click', function() {
+                const email = '@Model.Email';
+                const $btn = $(this);
+
+                console.log("🔄 Resending OTP to:", email);
+
+                // Show loading state
+                $('#resendText').addClass('d-none');
+                $('#resendSpinner').removeClass('d-none');
+                $btn.prop('disabled', true);
+
+                $.ajax({
+                    url: '/Account/ResendOTP',
+                    type: 'POST',
+                    data: { email: email },
+                    success: function(response) {
+                        console.log(" Resend response:", response);
+
+                        if (response.success) {
+                            alert(' ' + response.message);
+
+                            // Clear the OTP input
+                            $('#otpInput').val('').focus();
+                        } else {
+                            alert(' ' + (response.message || 'Failed to resend OTP'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(" Resend error:", error);
+                        alert(' Error resending OTP. Please try again.');
+                    },
+                    complete: function() {
+                        // Reset button state
+                        $('#resendText').removeClass('d-none');
+                        $('#resendSpinner').addClass('d-none');
+                        $btn.prop('disabled', false);
+                    }
+                });
             });
         });
     </script>

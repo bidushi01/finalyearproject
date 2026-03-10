@@ -1,0 +1,45 @@
+@{
+    ViewData["Title"] = "Helper Performance - Admin";
+    Layout = "_Layout";
+}
+<style>
+    .admin-page-wrap { padding: 30px; max-width: 1200px; margin: 0 auto; }
+</style>
+<div class="admin-page-wrap">
+    <h2 class="mb-4" style="color:#e8f4f8;">⚠️ Helper Performance — Users Who Received Requests but Did Not Help</h2>
+    <p class="text-muted mb-4">Breakdown of requests received, accepted, completed, not completed, rejected, withdrawn and pending per user.</p>
+    <div id="usersNotHelpedGrid"></div>
+    <p class="text-muted small mt-3" id="notHelpedEmpty">No data yet.</p>
+</div>
+@section Scripts {
+    <script>
+        $(function () {
+            $.getJSON('/Admin/GetHelpStatistics').done(function (stats) {
+                var notHelped = stats.UsersWhoDidNotHelp || [];
+                if (notHelped.length === 0) {
+                    $('#notHelpedEmpty').show();
+                    return;
+                }
+                $('#notHelpedEmpty').hide();
+                $('#usersNotHelpedGrid').dxDataGrid({
+                    dataSource: notHelped,
+                    keyExpr: 'UserId',
+                    showBorders: true,
+                    rowAlternationEnabled: true,
+                    paging: { pageSize: 20 },
+                    pager: { showInfo: true, showNavigationButtons: true },
+                    columns: [
+                        { dataField: 'Username', caption: 'User' },
+                        { dataField: 'RequestsReceived', caption: 'Requests received', dataType: 'number' },
+                        { dataField: 'Accepted', caption: 'Accepted', dataType: 'number', width: 90 },
+                        { dataField: 'Completed', caption: 'Completed', dataType: 'number', width: 100 },
+                        { dataField: 'NotCompleted', caption: 'Not completed', dataType: 'number', width: 120 },
+                        { dataField: 'Rejected', caption: 'Rejected', dataType: 'number', width: 90 },
+                        { dataField: 'Withdrawn', caption: 'Withdrawn', dataType: 'number', width: 100 },
+                        { dataField: 'Pending', caption: 'Pending', dataType: 'number', width: 90 }
+                    ]
+                });
+            });
+        });
+    </script>
+}

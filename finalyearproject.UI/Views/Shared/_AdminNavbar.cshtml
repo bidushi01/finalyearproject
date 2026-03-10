@@ -1,7 +1,8 @@
-﻿<nav class="navbar navbar-expand-lg navbar-light bg-info bg-gradient shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3" style="background: rgba(10, 15, 29, 0.95); backdrop-filter: blur(15px); 
+border-bottom: 1px solid rgba(255,255,255,0.08);">
     <div class="container">
-        <a class="navbar-brand text-white" asp-controller="Admin" asp-action="Index">
-            <span class="me-2">👨‍💼</span> Admin Area
+        <a class="navbar-brand text-white" asp-controller="Admin" asp-action="Index"></a>
+           
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
             <span class="navbar-toggler-icon"></span>
@@ -9,22 +10,25 @@
         <div class="collapse navbar-collapse" id="adminNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
+                    <a class="nav-link text-white px-3" asp-controller="Home" asp-action="Index">Home</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link text-white px-3" asp-controller="Admin" asp-action="Index">Dashboard</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white px-3" asp-controller="Home" asp-action="Index">Home</a>
+                    <a class="nav-link text-white px-3" asp-controller="Admin" asp-action="PendingUsers">Pending Users</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white px-3" asp-controller="Home" asp-action="About">About</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white px-3" asp-controller="Home" asp-action="Contact">Contact</a>
+                    <a class="nav-link text-white px-3" asp-controller="Home" asp-action="Services">Our Services</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center">
-                <span class="navbar-text text-white me-3">
+                @* <span class="navbar-text text-white me-3">
                     <strong>@User.Identity?.Name</strong>
-                </span>
+                </span> *@
                 <a class="btn btn-outline-light btn-sm me-2" asp-controller="Account" asp-action="ChangePassword">
                     Change Password
                 </a>

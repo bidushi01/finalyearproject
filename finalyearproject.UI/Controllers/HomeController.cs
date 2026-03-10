@@ -14,7 +14,7 @@ namespace finalyearproject.UI.Controllers
             return View();
         }
 
-        public IActionResult Contact()
+        public IActionResult Services()
         {
             return View();
         }

@@ -1,27 +1,119 @@
-﻿<!DOCTYPE html>
+
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PeerHelp Platform</title>
-    <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/25.2.3/css/dx.light.css" />
+    <title>@ViewData["Title"] - PeerAssist</title>
+
+    <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/25.2.3/css/dx.dark.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --deep-navy: #0a0f1d;
+            --accent-purple: #7c3aed;
+            --text-bright: #ffffff;
+            --text-muted: #cbd5e1;
+            --card-bg: #161b2c;
+        }
+
+        /* Full page dark background */
+        html, body {
+            background-color: var(--deep-navy) !important;
+            color: var(--text-bright);
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: rgba(10, 15, 29, 0.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+        }
+
+        /* Form & Card Readability Fix for Login/Register */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-bright);
+        }
+
+        input.form-control {
+            background-color: #05070a;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+
+            input.form-control:focus {
+                background-color: #05070a;
+                color: white;
+                border-color: var(--accent-purple);
+                box-shadow: 0 0 0 0.25rem rgba(124, 58, 237, 0.25);
+            }
+
+        h1, h2, h3, h4, .text-dark {
+            color: #ffffff !important;
+        }
+
+        p, .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .btn-main {
+            background: var(--accent-purple);
+            color: white !important;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+            .btn-main:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(124, 58, 237, 0.4);
+            }
+
+        main {
+            flex: 1;
+        }
+
+        .main-footer {
+            background: #05070a;
+            padding: 60px 0 30px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: auto;
+        }
+    </style>
 </head>
 <body>
     <header>
         @if (User.Identity?.IsAuthenticated == true)
         {
-            @if (User.IsInRole("Admin"))
+            if (User.IsInRole("Admin"))
             {
                 <partial name="_AdminNavbar" />
             }
             else
             {
+
                 <partial name="_UserNavbar" />
             }
         }
         else
         {
+
             <partial name="_PublicNavbar" />
         }
     </header>
@@ -29,34 +121,203 @@
     <div class="container mt-4">
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show">
+            <div class="alert alert-success alert-dismissible fade show bg-success text-white border-0 shadow">
                 @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
             </div>
         }
 
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show">
+            <div class="alert alert-danger alert-dismissible fade show bg-danger text-white border-0 shadow">
                 @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
             </div>
         }
 
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-5">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted mt-5">
-        <div class="container text-center py-3">
-            &copy; 2026 - PeerHelp Platform
+    <footer class="main-footer" style="background: #05070a; padding: 80px 0 40px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <div class="container">
+            <div class="row g-4 text-start">
+                <div class="col-lg-4 col-md-6">
+                    <h4 class="text-white fw-bold mb-4">PeerAssist<span style="color:#7c3aed">.</span></h4>
+                    <p class="small text-white-50 pe-lg-5">A premium ecosystem designed to connect seekers with verified experts through structured skill mapping and real-time collaboration.</p>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-white fw-bold small mb-4 uppercase">Navigation</h6>
+                    <ul class="list-unstyled d-grid gap-2">
+                        <li><a href="/" class="text-white-50 text-decoration-none small hover-white">Home</a></li>
+                        <li><a href="/Home/About" class="text-white-50 text-decoration-none small hover-white">About Us</a></li>
+                        <li><a href="/Home/Services" class="text-white-50 text-decoration-none small hover-white">Our Services</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-white fw-bold small mb-4 uppercase">Support & Legal</h6>
+                    <ul class="list-unstyled d-grid gap-2">
+                        <li><a href="#" class="text-white-50 text-decoration-none small hover-white">Help Center</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none small hover-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none small hover-white">Terms of Use</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-white fw-bold small mb-4 uppercase">Contact Support</h6>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2"><i class="bi bi-telephone text-primary"></i></div>
+                        <span class="text-white-50 small">9866836520</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2"><i class="bi bi-envelope text-primary"></i></div>
+                        <span class="text-white-50 small">support@peerassist.com</span>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 pt-4 border-top border-secondary border-opacity-10 text-center">
+                <p class="small text-white-50 opacity-50 mb-0">&copy; @DateTime.Now.Year PeerAssist Network. All Rights Reserved.</p>
+            </div>
         </div>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn3.devexpress.com/jslib/25.2.3/js/dx.all.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true });
+    </script>
+
+    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("User"))
+    {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+        <script>
+            (function () {
+                var userId = '@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
+                if (!userId) return;
+
+                // ── Simple, persistent notification state (stored per user in localStorage) ──
+                var storageKey = 'peerassist-notify-' + userId;
+                var state = { helpInbox: 0, myRequests: 0, messages: 0 };
+                try {
+                    var existing = localStorage.getItem(storageKey);
+                    if (existing) {
+                        var parsed = JSON.parse(existing);
+                        if (parsed && typeof parsed === 'object') {
+                            state.helpInbox = parsed.helpInbox || 0;
+                            state.myRequests = parsed.myRequests || 0;
+                            state.messages = parsed.messages || 0;
+                        }
+                    }
+                } catch { /* ignore JSON errors */ }
+
+                function saveState() {
+                    try {
+                        localStorage.setItem(storageKey, JSON.stringify(state));
+                    } catch { /* ignore */ }
+                }
+
+                function renderBadges() {
+                    var inboxEl = document.getElementById('navHelpInboxBadge');
+                    var myReqEl = document.getElementById('navMyRequestsBadge');
+
+                    if (inboxEl) {
+                        if (state.helpInbox > 0) {
+                            inboxEl.textContent = state.helpInbox;
+                            inboxEl.classList.remove('d-none');
+                        } else {
+                            inboxEl.classList.add('d-none');
+                        }
+                    }
+
+                    if (myReqEl) {
+                        if (state.myRequests > 0) {
+                            myReqEl.textContent = state.myRequests;
+                            myReqEl.classList.remove('d-none');
+                        } else {
+                            myReqEl.classList.add('d-none');
+                        }
+                    }
+                }
+
+                // Expose helpers so pages can clear counts when opened
+                window.peerAssistNotifications = {
+                    clearHelpInbox: function () {
+                        state.helpInbox = 0;
+                        saveState();
+                        renderBadges();
+                    },
+                    clearMyRequests: function () {
+                        state.myRequests = 0;
+                        saveState();
+                        renderBadges();
+                    },
+                    clearMessages: function () {
+                        state.messages = 0;
+                        saveState();
+                        renderBadges();
+                    },
+                    incrementMyRequests: function (delta) {
+                        state.myRequests = Math.max(0, state.myRequests + (delta || 1));
+                        saveState();
+                        renderBadges();
+                    }
+                };
+
+                // Initial snapshot from server so counts reflect existing data
+                if (window.$ && $.getJSON) {
+                    $.getJSON('/User/GetNotificationSnapshot')
+                        .done(function (snap) {
+                            if (!snap) return;
+                            state.helpInbox = snap.inboxPending ?? state.helpInbox;
+                            state.myRequests = snap.myActive ?? state.myRequests;
+                            saveState();
+                            renderBadges();
+                        })
+                        .fail(function () {
+                            renderBadges();
+                        });
+                } else {
+                    renderBadges();
+                }
+
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/helpHub")
+                    .withAutomaticReconnect()
+                    .build();
+
+                connection.on("HelpRequestReceived", function (seekerName) {
+                    state.helpInbox = state.helpInbox + 1;
+                    saveState();
+                    renderBadges();
+
+                    if (window.DevExpress && DevExpress.ui && DevExpress.ui.notify) {
+                        DevExpress.ui.notify('New help request from ' + seekerName, 'info', 8000);
+                    } else {
+                        alert('New help request from ' + seekerName);
+                    }
+                });
+
+                connection.on("MessageReceived", function (fromName) {
+                    state.messages = state.messages + 1;
+                    saveState();
+                    renderBadges();
+
+                    if (window.DevExpress && DevExpress.ui && DevExpress.ui.notify) {
+                        DevExpress.ui.notify('New message from ' + fromName, 'info', 8000);
+                    } else {
+                        alert('New message from ' + fromName);
+                    }
+                });
+
+                connection.start().then(function () {
+                    connection.invoke("JoinUserGroup", userId);
+                }).catch(function () { /* ignore start errors */ });
+            })();
+        </script>
+    }
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

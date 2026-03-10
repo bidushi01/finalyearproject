@@ -1,45 +1,45 @@
 ﻿@model finalyearproject.UI.Models.LoginViewModel
-
 @{
     ViewData["Title"] = "Login";
 }
 
-<div class="row justify-content-center">
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
     <div class="col-md-5">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0 text-center">Login</h3>
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="background: #161b2c;">
+            <div class="card-header border-0 py-4 text-center" style="background: rgba(124, 58, 237, 0.1);">
+                <h2 class="h3 mb-0 fw-bold text-white">Welcome Back</h2>
+                <p class="text-white-50 small mb-0">Login to your PeerAssist account</p>
             </div>
-            <div class="card-body p-4">
-                <form asp-action="Login" method="post">
+            <div class="card-body p-5">
+                <form asp-action="Login" method="post" id="loginForm">
                     @Html.AntiForgeryToken()
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    <div id="LoginValidationSummary"></div>
 
-                    <div class="mb-3">
-                        <label asp-for="EmailOrUsername" class="form-label fw-bold">Email or Username</label>
-                        <input asp-for="EmailOrUsername" class="form-control" autofocus />
-                        <span asp-validation-for="EmailOrUsername" class="text-danger"></span>
+                    <div class="mb-4">
+                        <label class="form-label small text-white-50 fw-bold uppercase">Email or Username</label>
+                        <div id="txtEmailOrUsername" class="rounded-3 shadow-sm"></div>
+                        <input type="hidden" asp-for="EmailOrUsername" id="hiddenEmailOrUsername" />
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label fw-bold">Password</label>
-                        <input asp-for="Password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
+                    <div class="mb-4">
+                        <label class="form-label small text-white-50 fw-bold">Password</label>
+                        <div id="txtLoginPassword" class="rounded-3 shadow-sm"></div>
+                        <input type="hidden" asp-for="Password" id="hiddenLoginPassword" />
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input asp-for="RememberMe" class="form-check-input" />
-                        <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+                    <div class="mb-4 form-check">
+                        <input asp-for="RememberMe" class="form-check-input" style="background-color: #0a0f1d; border-color: rgba(255,255,255,0.2);" />
+                        <label asp-for="RememberMe" class="form-check-label text-white-50 small">Keep me logged in</label>
                     </div>
 
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                    <div class="d-grid mb-4">
+                        <div id="btnLogin"></div>
                     </div>
                 </form>
 
-                <hr class="my-4">
-                <div class="text-center">
-                    <p class="mb-0">Don't have an account? <a asp-action="Register">Register here</a></p>
+                <div class="text-center pt-3 border-top border-secondary border-opacity-10">
+                    <p class="text-white-50 small mb-2">New to the platform? <a asp-action="Register" class="text-decoration-none" style="color: #a78bfa;">Create an account</a></p>
+                    <a asp-action="ForgotPassword" class="text-white-50 text-decoration-none x-small">Forgot your password?</a>
                 </div>
             </div>
         </div>
@@ -47,5 +47,5 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/login.js"></script>
 }
