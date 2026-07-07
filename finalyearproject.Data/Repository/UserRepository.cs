@@ -24,6 +24,8 @@ namespace finalyearproject.Data.Repository
             _sqlLegacyPassphrase = string.IsNullOrEmpty(leg) ? null : leg;
         }
 
+        // ── Registration ──────────────────────────────────────────────────
+
         public async Task<(int Result, string Message)> RegisterUserAsync(User user)
         {
             var parameters = new
@@ -80,6 +82,7 @@ namespace finalyearproject.Data.Repository
                 new { UserId = userId },
                 commandType: CommandType.StoredProcedure);
 
+            // Verify deletion. If the proc didn't delete, enforce deletion here.
             var exists = await conn.ExecuteScalarAsync<int>(
                 "SELECT COUNT(1) FROM dbo.Users WHERE UserId = @UserId",
                 new { UserId = userId });
@@ -123,11 +126,22 @@ namespace finalyearproject.Data.Repository
                 commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        // ✅ FIX: Returns ALL email-verified users — used by admin Pending Users page
+        //public async Task<IEnumerable<dynamic>> GetAllUsersAsync()
+        //{
+        //    using var conn = new SqlConnection(_connectionString);
+        //    return await conn.QueryAsync("sp_GetAllUsers",
+        //        commandType: CommandType.StoredProcedure);
+        //}
+
+
+        public async Task<IEnumerable<User>> GetAllUsersAsync() // Explicitly return User objects
         {
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<User>("sp_GetAllUsers", commandType: CommandType.StoredProcedure);
         }
+
+        // ── OTP ───────────────────────────────────────────────────────────
 
         public async Task<bool> StoreOTPAsync(string email, string otpCode, DateTime expiresAt)
         {
@@ -160,6 +174,8 @@ namespace finalyearproject.Data.Repository
                 "sp_MarkEmailAsVerified",
                 new { UserId = userId });
 
+        // ── Password Reset — User ─────────────────────────────────────────
+
         public async Task<bool> StorePasswordResetTokenAsync(int userId, string token, DateTime expiresAt)
         {
             var result = await _sqlDataAccess.LoadSingleDataAsync<dynamic, dynamic>(
@@ -180,6 +196,9 @@ namespace finalyearproject.Data.Repository
                 new { UserId = userId, PasswordHash = passwordHash, PasswordSalt = passwordSalt, Token = token });
             return Convert.ToInt32(result.Result) == 1;
         }
+
+        // ── Password Reset — Admin ────────────────────────────────────────
+        // ✅ FIX: These were previously stub/dummy implementations — now real
 
         public async Task<bool> StoreAdminPasswordResetTokenAsync(int adminId, string token, DateTime expiresAt)
         {
@@ -442,6 +461,7 @@ ORDER BY us.SkillSubmittedAt ASC, us.UserSkillId ASC;";
             return (Convert.ToInt32(result.Result), result.Message?.ToString() ?? "");
         }
 
+        // ── PEERASSIST Algorithm ───────────────────────────────────────────
         public async Task<bool> CanRequestHelpAsync(int seekerId)
         {
             using var conn = new SqlConnection(_connectionString);

@@ -7,7 +7,7 @@ namespace finalyearproject.Data.Services
     {
         public (string Hash, string Salt) HashPassword(string password)
         {
-            // Generate random salt (32 bytes)
+          
             byte[] saltBytes = new byte[32];
             using (var rng = RandomNumberGenerator.Create())
             {
@@ -15,7 +15,7 @@ namespace finalyearproject.Data.Services
             }
             string salt = Convert.ToBase64String(saltBytes);
 
-            // Hash password with salt using SHA-256
+         
             string hash = HashPasswordWithSalt(password, salt);
 
             return (hash, salt);
