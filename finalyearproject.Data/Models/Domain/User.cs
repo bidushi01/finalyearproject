@@ -14,9 +14,8 @@ namespace finalyearproject.Data.Models.Domain
         public string CVPath { get; set; }
         public string PortfolioUrl { get; set; }
         public DateTime CreatedAt { get; set; }
-        public int RegistrationStep { get; set; }  // ⬅️ ADD THIS 
+        public int RegistrationStep { get; set; }  
         
-        // Returned by sp_GetAllUsers (ONE row per user)
         public int SkillCount { get; set; }
         public string? SkillsJson { get; set; }
         

@@ -1,0 +1,201 @@
+<style>
+    .peer-video-grid { position: relative; width: 100%; height: 100%; }
+    .peer-video-tile {
+        position: relative;
+        background: #000;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .peer-video-tile video {
+        width: 100%;
+        height: 100%;
+        background: #000;
+        object-fit: cover;
+        display: block;
+    }
+    .peer-video-tile.camera-off video { display: none !important; }
+    #peerAssistLocalVideoWrap.camera-off { background: #000 !important; min-height: 80px; }
+    #peerAssistRemoteVideoWrap.camera-off { background: #000 !important; min-height: 80px; }
+    .peer-video-label {
+        position: absolute;
+        top: 6px;
+        left: 8px;
+        z-index: 2;
+        font-size: 0.6rem;
+        color: #fff;
+        background: rgba(0,0,0,0.6);
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+    #peerAssistIncomingCall,
+    #peerAssistOutgoingCall {
+        position: fixed;
+        inset: 0;
+        z-index: 200000;
+        background: rgba(5, 8, 16, 0.94);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    #peerAssistIncomingCall.peer-call-open,
+    #peerAssistOutgoingCall.peer-call-open { display: flex !important; }
+    .peer-call-card {
+        background: #0a0f1d;
+        border: 2px solid #7c3aed;
+        border-radius: 16px;
+        padding: 32px 36px;
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+    }
+    #peerAssistActiveCallPanel {
+        position: fixed;
+        z-index: 199000;
+        background: #0a0f1d;
+        border: 1px solid rgba(124, 58, 237, 0.45);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    #peerAssistActiveCallPanel.peer-call-open { display: flex !important; }
+    #peerAssistActiveCallPanel.peer-call-minimized {
+        bottom: 16px;
+        right: 16px;
+        top: auto;
+        left: auto;
+        width: 300px;
+        max-height: 340px;
+        border-radius: 14px;
+    }
+    #peerAssistActiveCallPanel.peer-call-minimized .peer-call-videos { padding: 8px; }
+    #peerAssistActiveCallPanel.peer-call-minimized .peer-video-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        min-height: 100px;
+    }
+    #peerAssistActiveCallPanel.peer-call-minimized .peer-video-tile { min-height: 85px; }
+    #peerAssistActiveCallPanel.peer-call-expanded {
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        border: none;
+        background: #000;
+    }
+    #peerAssistActiveCallPanel.peer-call-expanded .peer-call-videos {
+        flex: 1;
+        position: relative;
+        min-height: 0;
+    }
+    #peerAssistActiveCallPanel.peer-call-expanded .peer-video-grid {
+        position: absolute;
+        inset: 0;
+    }
+    #peerAssistActiveCallPanel.peer-call-expanded #peerAssistRemoteVideoWrap {
+        position: absolute;
+        inset: 0;
+        border-radius: 0;
+    }
+    #peerAssistActiveCallPanel.peer-call-expanded #peerAssistRemoteVideoWrap video {
+        object-fit: contain;
+        min-height: 100%;
+    }
+    #peerAssistActiveCallPanel.peer-call-expanded #peerAssistLocalVideoWrap {
+        position: absolute;
+        bottom: 88px;
+        right: 20px;
+        width: 140px;
+        height: 105px;
+        z-index: 5;
+        border: 2px solid rgba(255,255,255,0.25);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .peer-call-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: rgba(124, 58, 237, 0.2);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    .peer-call-topbar-title { color: #fff; font-weight: 600; font-size: 0.85rem; flex: 1; }
+    .peer-call-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 12px;
+        background: rgba(0,0,0,0.5);
+        flex-shrink: 0;
+    }
+    #peerAssistActiveCallPanel.peer-call-expanded .peer-call-toolbar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        background: linear-gradient(transparent, rgba(0,0,0,0.9));
+        padding: 16px 20px 20px;
+    }
+    .peer-call-videos { position: relative; flex: 1; min-height: 0; }
+</style>
+<span id="peerAssistVideoMeta" class="d-none" data-seeker-id="" data-helper-id=""></span>
+
+<div id="peerAssistIncomingCall" role="dialog" aria-label="Incoming call">
+    <div class="peer-call-card">
+        <p class="text-muted small mb-2">Incoming video call</p>
+        <h4 class="text-white mb-4" id="peerAssistIncomingCallerName">Someone</h4>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <button type="button" class="btn btn-success btn-lg px-5" id="peerAssistAcceptCallBtn">Accept</button>
+            <button type="button" class="btn btn-danger btn-lg px-5" id="peerAssistDeclineCallBtn">Decline</button>
+        </div>
+    </div>
+</div>
+
+<div id="peerAssistOutgoingCall" role="dialog" aria-label="Outgoing call">
+    <div class="peer-call-card">
+        <p class="text-muted small mb-2">Calling… waiting for answer</p>
+        <h4 class="text-white mb-4" id="peerAssistOutgoingCalleeName">Peer</h4>
+        <button type="button" class="btn btn-outline-light btn-lg px-5" id="peerAssistCancelCallBtn">Cancel</button>
+    </div>
+</div>
+
+<div id="peerAssistActiveCallPanel" class="peer-call-minimized">
+    <div class="peer-call-topbar">
+        <span class="peer-call-topbar-title" id="peerAssistCallPeerName">In call</span>
+        <button type="button" class="btn btn-sm btn-outline-light" id="peerAssistExpandCallBtn">Full screen</button>
+        <button type="button" class="btn btn-sm btn-outline-light d-none" id="peerAssistMinimizeCallBtn">Minimize</button>
+    </div>
+    <div class="peer-call-videos">
+        <div class="peer-video-grid">
+            <div class="peer-video-tile camera-off" id="peerAssistRemoteVideoWrap">
+                <span class="peer-video-label">Peer</span>
+                <video id="peerAssistRemoteVideo" autoplay playsinline></video>
+                <audio id="peerAssistRemoteAudio" autoplay playsinline class="d-none"></audio>
+            </div>
+            <div class="peer-video-tile camera-off" id="peerAssistLocalVideoWrap">
+                <span class="peer-video-label">You</span>
+                <video id="peerAssistLocalVideo" autoplay playsinline muted></video>
+            </div>
+        </div>
+    </div>
+    <div class="peer-call-toolbar">
+        <button type="button" class="btn btn-sm btn-danger" id="peerAssistEndVideoBtn">End</button>
+        <button type="button" class="btn btn-sm btn-outline-light" id="peerAssistMuteBtn">Mute</button>
+        <button type="button" class="btn btn-sm btn-outline-light" id="peerAssistCameraBtn">Camera on</button>
+        <button type="button" class="btn btn-sm btn-outline-info" id="peerAssistShareBtn"
+                title="Share a window or tab — not the whole screen — to avoid the mirror effect">Share screen</button>
+        <label class="small text-muted mb-0 d-flex align-items-center gap-1">
+            Vol
+            <input type="range" id="peerAssistRemoteVolume" min="0" max="100" value="100" style="width:65px;" />
+        </label>
+    </div>
+    <p id="peerAssistVideoStatus" class="small text-muted mb-0 px-3 pb-2 d-none"></p>
+</div>

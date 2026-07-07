@@ -100,7 +100,7 @@ function approveUser(userId, username) {
                 if (data.success) {
                     DevExpress.ui.notify(data.message, "success", 3000);
                     setTimeout(function () {
-                        window.location.href = '/Admin/PendingUsers';
+                        window.location.href = '/Admin/PendingSkills';
                     }, 2000);
                 } else {
                     DevExpress.ui.notify(data.message, "error", 3000);
@@ -124,7 +124,7 @@ function rejectUser(userId, username) {
                 if (data.success) {
                     DevExpress.ui.notify(data.message, "success", 3000);
                     setTimeout(function () {
-                        window.location.href = '/Admin/PendingUsers';
+                        window.location.href = '/Admin/PendingSkills';
                     }, 2000);
                 } else {
                     DevExpress.ui.notify(data.message, "error", 3000);

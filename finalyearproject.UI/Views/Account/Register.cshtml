@@ -1,82 +1,4 @@
-﻿@* @model finalyearproject.UI.Models.RegisterViewModel
-@{
-    ViewData["Title"] = "Register - Step 1 of 2";
-}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header text-white text-center" style="background-color: #00bcd4;">
-                <h3 class="mb-0">Create Account - Step 1 of 2</h3>
-                <p class="mb-0 mt-2"><small>Basic Information</small></p>
-            </div>
-            <div class="card-body p-4" style="background-color: #f5f5f5;">
-                <form asp-action="Register" method="post" id="registerForm">
-                    @Html.AntiForgeryToken()
-
-                    <!-- Client-side DevExpress validation summary -->
-                    <div id="ValidationSummary"></div>
-
-                    <!-- Server-side (ModelState) validation summary -->
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mt-3"></div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Username</label>
-                            <div id="txtUsername"></div>
-                            <input type="hidden" asp-for="Username" id="hiddenUsername" />
-                            <span asp-validation-for="Username" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Email</label>
-                            <div id="txtEmail"></div>
-                            <input type="hidden" asp-for="Email" id="hiddenEmail" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Phone Number</label>
-                        <div id="txtPhone"></div>
-                        <input type="hidden" asp-for="PhoneNumber" id="hiddenPhone" />
-                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Password</label>
-                            <div id="txtPassword"></div>
-                            <input type="hidden" asp-for="Password" id="hiddenPassword" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <label class="form-label fw-bold">Confirm Password</label>
-                            <div id="txtConfirmPassword"></div>
-                            <input type="hidden" asp-for="ConfirmPassword" id="hiddenConfirmPassword" />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                        </div>
-                    </div>
-
-                    <div class="d-grid">
-                        <div id="btnRegister"></div>
-                    </div>
-                </form>
-
-                <hr class="my-4">
-
-                <div class="text-center">
-                    <p class="mb-0">Already have an account? <a asp-action="Login" style="color: #0066cc;">Login here</a></p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/register.js"></script>
-} *@
-
-@model finalyearproject.UI.Models.RegisterViewModel
+﻿@model finalyearproject.UI.Models.RegisterViewModel
 @{
     ViewData["Title"] = "Create Account";
 }
@@ -86,7 +8,7 @@
         <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="background: #161b2c;">
             <div class="card-header border-0 py-4 text-center" style="background: rgba(124, 58, 237, 0.1);">
                 <h2 class="h3 mb-0 fw-bold text-white">Join the Network</h2>
-                <p class="text-white-50 small mb-0">Step 1: Personal Identification</p>
+                <p class="text-white-50 small mb-0">Create your account — skills can be added later from your profile</p>
             </div>
             <div class="card-body p-5">
                 <form asp-action="Register" method="post" id="registerForm">

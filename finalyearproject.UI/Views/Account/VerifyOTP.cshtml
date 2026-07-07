@@ -1,105 +1,4 @@
-﻿@* @model finalyearproject.UI.Models.VerifyOTPViewModel
-@{
-    ViewData["Title"] = "Verify Email";
-}
-
-<style>
-    body {
-        background-color: #0a0f1d;
-        color: #ffffff;
-    }
-
-    .custom-card {
-        background: #161b2c;
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 2rem;
-    }
-
-    .custom-card-header {
-        background: linear-gradient(135deg, #1e1b4b, #0a0f1d);
-        border-bottom: 1px solid rgba(124, 58, 237, 0.3);
-        border-top-left-radius: 2rem !important;
-        border-top-right-radius: 2rem !important;
-        padding: 2.5rem;
-    }
-
-    .info-badge {
-        background: rgba(124, 58, 237, 0.15);
-        border: 1px solid rgba(124, 58, 237, 0.4);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        color: #ffffff;
-    }
-
-    .otp-input {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        border: 2px solid #7c3aed !important;
-        color: #ffffff !important; /* Pure white for the code digits */
-        font-weight: 800;
-        font-size: 2.5rem !important;
-        border-radius: 1rem !important;
-    }
-
-    .btn-complete {
-        background: linear-gradient(90deg, #a78bfa, #7c3aed);
-        border: none;
-        color: white !important;
-        font-weight: 700;
-        padding: 1rem;
-        border-radius: 0.75rem;
-    }
-</style>
-
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card custom-card shadow-2xl">
-                <div class="custom-card-header text-center">
-                    <h2 class="display-6 fw-bold mb-0">Verify Email</h2>
-                    <p class="text-white-50 mt-2">The final step to join PeerAssist</p>
-                </div>
-
-                <div class="card-body p-4 p-md-5">
-                    <div class="info-badge text-center mb-4">
-                        <small class="d-block text-white-50 mb-1">Verification code sent to:</small>
-                        <strong class="text-info fs-5">@Model.Email</strong>
-                    </div>
-
-                    <form asp-action="VerifyOTP" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" asp-for="Email" />
-
-                        <div class="mb-5 text-center">
-                            <label asp-for="OTPCode" class="form-label fw-bold mb-3" style="color: #c4b5fd; font-size: 1.1rem;">Enter 6-Digit OTP</label>
-                            <input asp-for="OTPCode" class="form-control otp-input text-center"
-                                   inputmode="numeric" autofocus placeholder="000000" autocomplete="off" />
-                            <span asp-validation-for="OTPCode" class="text-danger small fw-bold mt-2 d-block"></span>
-                        </div>
-
-                        <div class="d-grid gap-3">
-                            <button type="submit" class="btn btn-complete">
-                                COMPLETE REGISTRATION
-                            </button>
-                            <a asp-action="AddSkills" class="btn btn-link text-white-50 text-decoration-none text-center">
-                                &larr; Back to Skills & CV
-                            </a>
-                        </div>
-                    </form>
-
-                    <div class="mt-4 pt-4 border-top border-secondary text-center">
-                        <p class="text-white-50 small mb-2">Didn't receive the security code?</p>
-                        <button id="resendBtn" class="btn btn-sm btn-outline-info rounded-pill px-4">
-                            Resend OTP
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div> *@
-
-
-@model finalyearproject.UI.Models.VerifyOTPViewModel
+﻿@model finalyearproject.UI.Models.VerifyOTPViewModel
 @{
     ViewData["Title"] = "Verify Email";
 }
@@ -255,8 +154,8 @@
                                 </span>
                             </button>
 
-                            <a asp-action="AddSkills" class="btn btn-link text-white-50 text-decoration-none text-center">
-                                &larr; Back to Skills & CV
+                            <a asp-action="Register" class="btn btn-link text-white-50 text-decoration-none text-center">
+                                &larr; Back to Register
                             </a>
                         </div>
                     </form>

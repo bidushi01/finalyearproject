@@ -7,8 +7,11 @@ namespace finalyearproject.UI.Models
     {
         public int UserId { get; set; }
 
-        // Used only when editing an existing skill for a logged-in user.
+        // Used when editing an existing skill row in the database.
         public int? UserSkillId { get; set; }
+
+        // Used when editing a draft skill stored in session before admin submit.
+        public string? TempId { get; set; }
 
         [Required(ErrorMessage = "Field is required")]
         public int FieldId { get; set; }
@@ -31,5 +34,7 @@ namespace finalyearproject.UI.Models
 
         [Required(ErrorMessage = "End time is required")]
         public String AvailableTimeEnd { get; set; }
+
+        public string? AvailableTimeSlots { get; set; }
     }
 }

@@ -193,131 +193,17 @@
     {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
         <script>
-            (function () {
-                var userId = '@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
-                if (!userId) return;
-
-                // ── Simple, persistent notification state (stored per user in localStorage) ──
-                var storageKey = 'peerassist-notify-' + userId;
-                var state = { helpInbox: 0, myRequests: 0, messages: 0 };
-                try {
-                    var existing = localStorage.getItem(storageKey);
-                    if (existing) {
-                        var parsed = JSON.parse(existing);
-                        if (parsed && typeof parsed === 'object') {
-                            state.helpInbox = parsed.helpInbox || 0;
-                            state.myRequests = parsed.myRequests || 0;
-                            state.messages = parsed.messages || 0;
-                        }
-                    }
-                } catch { /* ignore JSON errors */ }
-
-                function saveState() {
-                    try {
-                        localStorage.setItem(storageKey, JSON.stringify(state));
-                    } catch { /* ignore */ }
-                }
-
-                function renderBadges() {
-                    var inboxEl = document.getElementById('navHelpInboxBadge');
-                    var myReqEl = document.getElementById('navMyRequestsBadge');
-
-                    if (inboxEl) {
-                        if (state.helpInbox > 0) {
-                            inboxEl.textContent = state.helpInbox;
-                            inboxEl.classList.remove('d-none');
-                        } else {
-                            inboxEl.classList.add('d-none');
-                        }
-                    }
-
-                    if (myReqEl) {
-                        if (state.myRequests > 0) {
-                            myReqEl.textContent = state.myRequests;
-                            myReqEl.classList.remove('d-none');
-                        } else {
-                            myReqEl.classList.add('d-none');
-                        }
-                    }
-                }
-
-                // Expose helpers so pages can clear counts when opened
-                window.peerAssistNotifications = {
-                    clearHelpInbox: function () {
-                        state.helpInbox = 0;
-                        saveState();
-                        renderBadges();
-                    },
-                    clearMyRequests: function () {
-                        state.myRequests = 0;
-                        saveState();
-                        renderBadges();
-                    },
-                    clearMessages: function () {
-                        state.messages = 0;
-                        saveState();
-                        renderBadges();
-                    },
-                    incrementMyRequests: function (delta) {
-                        state.myRequests = Math.max(0, state.myRequests + (delta || 1));
-                        saveState();
-                        renderBadges();
-                    }
-                };
-
-                // Initial snapshot from server so counts reflect existing data
-                if (window.$ && $.getJSON) {
-                    $.getJSON('/User/GetNotificationSnapshot')
-                        .done(function (snap) {
-                            if (!snap) return;
-                            state.helpInbox = snap.inboxPending ?? state.helpInbox;
-                            state.myRequests = snap.myActive ?? state.myRequests;
-                            saveState();
-                            renderBadges();
-                        })
-                        .fail(function () {
-                            renderBadges();
-                        });
-                } else {
-                    renderBadges();
-                }
-
-                const connection = new signalR.HubConnectionBuilder()
-                    .withUrl("/helpHub")
-                    .withAutomaticReconnect()
-                    .build();
-
-                connection.on("HelpRequestReceived", function (seekerName) {
-                    state.helpInbox = state.helpInbox + 1;
-                    saveState();
-                    renderBadges();
-
-                    if (window.DevExpress && DevExpress.ui && DevExpress.ui.notify) {
-                        DevExpress.ui.notify('New help request from ' + seekerName, 'info', 8000);
-                    } else {
-                        alert('New help request from ' + seekerName);
-                    }
-                });
-
-                connection.on("MessageReceived", function (fromName) {
-                    state.messages = state.messages + 1;
-                    saveState();
-                    renderBadges();
-
-                    if (window.DevExpress && DevExpress.ui && DevExpress.ui.notify) {
-                        DevExpress.ui.notify('New message from ' + fromName, 'info', 8000);
-                    } else {
-                        alert('New message from ' + fromName);
-                    }
-                });
-
-                connection.start().then(function () {
-                    connection.invoke("JoinUserGroup", userId);
-                }).catch(function () { /* ignore start errors */ });
-            })();
+            window.peerAssistUserId = '@(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value?.Trim() ?? "")';
         </script>
+        <script src="~/js/peerAssistNotifications.js" asp-append-version="true"></script>
+        <script src="~/js/peerAssistVideoCall.js" asp-append-version="true"></script>
     }
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("User"))
+    {
+        @await Html.PartialAsync("_ChatVideoCall")
+    }
 </body>
 </html>

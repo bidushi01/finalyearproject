@@ -6,7 +6,7 @@
     .admin-page-wrap { padding: 30px; max-width: 900px; margin: 0 auto; }
 </style>
 <div class="admin-page-wrap">
-    <h2 class="mb-4" style="color:#e8f4f8;">🏆 Top Helpers (by helps given)</h2>
+    <h2 class="mb-4" style="color:#e8f4f8;"> Top Helpers (by helps given)</h2>
     <p class="text-muted mb-4">Users who have completed the most help sessions.</p>
     <div id="helpersGrid"></div>
     <p class="text-muted small mt-3" id="helpersEmpty">No data yet.</p>
@@ -15,7 +15,8 @@
     <script>
         $(function () {
             $.getJSON('/Admin/GetHelpStatistics').done(function (stats) {
-                var helpers = stats.HelperBreakdown || [];
+                stats = stats || {};
+                var helpers = stats.helperBreakdown || stats.HelperBreakdown || [];
                 if (helpers.length === 0) {
                     $('#helpersEmpty').show();
                     return;

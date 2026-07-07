@@ -60,36 +60,38 @@
         margin-bottom: 12px;
     }
 
-    #recentUsersGrid {
+    #recentUsersGrid,
+    #recentChangesGrid {
         border-radius: 16px;
         overflow: hidden;
         border: 1px solid rgba(255,255,255,0.08);
         margin-top: 10px;
+        margin-bottom: 24px;
     }
 </style>
 
 <div class="admin-dashboard-wrapper">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <h2 class="fw-bold mb-1" style="color:#e8f4f8;">👋 Welcome, @User.Identity?.Name</h2>
+            <h2 class="fw-bold mb-1" style="color:#e8f4f8;">Welcome, @User.Identity?.Name</h2>
             <div class="text-muted small">Quick snapshot of the platform activity.</div>
         </div>
         <div>
-            <a class="btn btn-outline-light btn-sm me-2" asp-controller="Admin" asp-action="PendingUsers">Review pending users</a>
+            <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="PendingSkills">Review pending skills</a>
         </div>
     </div>
 
     <div class="admin-grid-3 mb-4">
         <div class="admin-card pending">
-            <div class="admin-card-title">Waiting for approval</div>
+            <div class="admin-card-title">Waiting for skill approval</div>
             <div class="admin-card-number" id="dashPending">—</div>
         </div>
         <div class="admin-card approved">
-            <div class="admin-card-title">Approved users</div>
+            <div class="admin-card-title">Approved skills</div>
             <div class="admin-card-number" id="dashApproved">—</div>
         </div>
         <div class="admin-card rejected">
-            <div class="admin-card-title">Rejected / removed</div>
+            <div class="admin-card-title">Rejected skills</div>
             <div class="admin-card-number" id="dashRejected">—</div>
         </div>
     </div>
@@ -112,19 +114,19 @@
     <div class="admin-section-title mt-4 mb-3">Quick links</div>
     <div class="d-flex flex-wrap gap-2 mb-4">
         <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="AllUsers">
-            📋 All Users &amp; Recently Registered
+             All Users (with or without skills)
         </a>
         <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="TopHelpers">
-            🏆 Top Helpers
+             Top Helpers
         </a>
         <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="HelperPerformance">
-            ⚠️ Helper Performance (Who Did Not Help)
+             Helper Performance (Who Did Not Help)
         </a>
         <a class="btn btn-outline-light btn-sm" asp-controller="Admin" asp-action="RecentChanges">
-            📝 Recent Skill / CV Changes
+             Recent Skill / CV Changes
         </a>
-        <a class="btn btn-primary btn-sm" asp-controller="Admin" asp-action="PendingUsers">
-            ⏳ Review Pending Users
+        <a class="btn btn-primary btn-sm" asp-controller="Admin" asp-action="PendingSkills">
+             Review Pending Skills
         </a>
     </div>
 </div>

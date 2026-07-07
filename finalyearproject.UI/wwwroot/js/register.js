@@ -104,7 +104,7 @@ function initRegisterForm() {
 
     // Next Button (Step 1 → Step 2)
     $("#btnRegister").dxButton({
-        text: "Next: Add Skills & Upload CV →",
+        text: "Continue to Email Verification →",
         type: "default",
         width: "100%",
         height: 50,

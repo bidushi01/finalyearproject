@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    // Initialize the grid as empty first to avoid initialization errors
+
     buildGrid([]);
     loadUsers();
 });
@@ -29,7 +29,7 @@ function loadUsers() {
             if (gridElement.length > 0 && gridElement.dxDataGrid('instance')) {
                 gridElement.dxDataGrid('instance').option('dataSource', pendingOnly);
             } else {
-                buildGrid(pendingOnly); // Initialize if not already done
+                buildGrid(pendingOnly); 
             }
         });
 }

@@ -1,67 +1,3 @@
-//using finalyearproject.Data.Models.Domain;
-
-//namespace finalyearproject.Data.Repository
-//{
-//    public interface IUserRepository
-//    {
-//        // User Registration & Authentication
-//        Task<(int Result, string Message)> RegisterUserAsync(User user);
-//        Task<User> GetUserByEmailAsync(string email);
-//        Task<User> GetUserByUsernameAsync(string username);
-//        Task<User> GetUserByIdAsync(int userId);
-//        Task<AdminLogin> GetAdminByUsernameAsync(string username);
-//        Task<AdminLogin> GetAdminByEmailAsync(string email);
-
-//        // OTP Verification
-//        Task<bool> StoreOTPAsync(string email, string otpCode, DateTime expiresAt);
-//        Task<bool> VerifyOTPAsync(string email, string otpCode);
-//        Task<dynamic> CheckOTPValidityAsync(string email, string otpCode);
-//        Task MarkOTPAsUsedAsync(string email, string otpCode);
-//        Task MarkEmailAsVerifiedAsync(int userId);
-
-//        // Admin Approval
-//        Task<bool> ApproveUserAsync(int userId);
-//        Task<bool> RejectUserAsync(int userId);
-//        Task<IEnumerable<User>> GetPendingUsersAsync();
-
-//        // Password Reset (User)
-//        Task<bool> StorePasswordResetTokenAsync(int userId, string token, DateTime expiresAt);
-//        Task<dynamic> VerifyPasswordResetTokenAsync(string token);
-//        Task<bool> ResetPasswordAsync(int userId, string passwordHash, string passwordSalt, string token);
-
-//        // Password Reset (Admin)
-//        Task<bool> StoreAdminPasswordResetTokenAsync(int adminId, string token, DateTime expiresAt);
-//        Task<dynamic> VerifyAdminPasswordResetTokenAsync(string token);
-//        Task<bool> ResetAdminPasswordAsync(int adminId, string passwordHash, string passwordSalt, string token);
-
-//        // Master Data (Fields, Skills, SubSkills)
-//        Task<(int Result, string Message)> AddFieldAsync(string fieldName);
-//        Task<(int Result, string Message)> AddSkillAsync(int fieldId, string skillName);
-//        Task<(int Result, string Message)> AddSubSkillAsync(int skillId, string subSkillName);
-//        Task<IEnumerable<dynamic>> GetAllFieldsAsync();
-//        Task<IEnumerable<dynamic>> GetSkillsByFieldAsync(int fieldId);
-//        Task<IEnumerable<dynamic>> GetSubSkillsBySkillAsync(int skillId);
-
-//        // User Skills
-//        Task<(int Result, string Message)> AddUserSkillAsync(
-//            int userId,
-//            int fieldId,
-//            int skillId,
-//            int subSkillId,
-//            int experienceLevel,
-//            string availableDays,
-//            TimeSpan? availableTimeStart,
-//            TimeSpan? availableTimeEnd);
-//        Task<IEnumerable<dynamic>> GetUserSkillsDisplayAsync(int userId);
-
-//        Task<IEnumerable<dynamic>> GetAllUsersAsync();
-//        Task<(bool success, string message)> ApproveUserAsync(int userId);
-//        Task<(bool success, string message)> RejectUserAsync(int userId);
-
-//    }
-//}
-
-
 using finalyearproject.Data.Models.Domain;
 
 namespace finalyearproject.Data.Repository
@@ -121,8 +57,16 @@ namespace finalyearproject.Data.Repository
             int experienceLevel,
             string availableDays,
             TimeSpan? availableTimeStart,
-            TimeSpan? availableTimeEnd);
-        Task<IEnumerable<dynamic>> GetUserSkillsDisplayAsync(int userId);
+            TimeSpan? availableTimeEnd,
+            string? availableTimeSlots = null);
+        Task<IEnumerable<dynamic>> GetUserSkillsDisplayAsync(int userId, bool approvedOnly = false);
+        Task FinalizeRegistrationAutoApproveAsync(int userId);
+        Task<IEnumerable<dynamic>> GetPendingUserSkillsAsync();
+        Task<dynamic?> GetSkillApprovalStatsAsync();
+        Task<(bool Success, string Message, string? Email, string? Username, string? SkillSummary)> ApproveUserSkillAsync(int userSkillId);
+        Task<(bool Success, string Message, string? Email, string? Username, string? SkillSummary, string? RejectionReason)> RejectUserSkillAsync(int userSkillId, string reason);
+        Task<bool> UserOwnsUserSkillAsync(int userId, int userSkillId);
+        Task<bool> UserHasNonRejectedSkillAsync(int userId, int fieldId, int skillId, int subSkillId);
 
         Task<(int Result, string Message)> UpdateUserSkillAsync(
             int userSkillId,
@@ -133,7 +77,8 @@ namespace finalyearproject.Data.Repository
             int experienceLevel,
             string availableDays,
             TimeSpan? availableTimeStart,
-            TimeSpan? availableTimeEnd);
+            TimeSpan? availableTimeEnd,
+            string? availableTimeSlots = null);
 
         Task DeleteUserSkillAsync(int userSkillId);
 
@@ -156,6 +101,10 @@ namespace finalyearproject.Data.Repository
 
         // ── PEERASSIST Algorithm (Phases 1, 3, 4–9) ─────────────────────
         Task<bool> CanRequestHelpAsync(int seekerId);
+        /// <summary>True if this user has any HelpRequests row still in Pending (truth for seeker gate if UserStates.RP is out of sync).</summary>
+        Task<bool> SeekerHasPendingHelpRequestAsync(int seekerId);
+        /// <summary>When non-null, Ask Help / matching should be blocked; value drives user-facing copy (helperActive, seekerPending, seekerActive, other).</summary>
+        Task<string?> GetAskHelpBusyReasonAsync(int userId);
         Task<(int HelpRequestId, int Result, string Message)> CreateHelpRequestAsync(
             int seekerId, int helperId, int fieldId, int skillId, int subSkillId,
             TimeSpan? timeStart, TimeSpan? timeEnd, string availableDay, string description);
@@ -164,7 +113,8 @@ namespace finalyearproject.Data.Repository
             TimeSpan? timeStart, TimeSpan? timeEnd, string availableDay);
         Task<bool> AcceptHelpRequestAsync(int helpRequestId);
         Task<bool> RejectHelpRequestAsync(int helpRequestId);
-        Task<bool> WithdrawHelpRequestAsync(int helpRequestId, int seekerId);
+        Task<bool> WithdrawHelpRequestAsync(int helpRequestId, int seekerId, bool isTimeout = false);
+        Task RecordHelperNoResponseAsync(int helperId);
         Task<bool> EndSessionAsync(int helpRequestId, bool isSuccessful);
         Task UpdateHelperRatingAsync(int helperId, int fieldId, int skillId, int subSkillId, decimal newRatingValue);
         Task<IEnumerable<dynamic>> GetHelpRequestsBySeekerAsync(int seekerId);

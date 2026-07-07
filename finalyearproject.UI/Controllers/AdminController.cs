@@ -1,8 +1,10 @@
 using finalyearproject.Data.Helper;
+using finalyearproject.Data.Models.Domain;
 using finalyearproject.Data.Repository;
 using finalyearproject.Data.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Linq;
 
 namespace finalyearproject.UI.Controllers
@@ -19,7 +21,7 @@ namespace finalyearproject.UI.Controllers
             _emailService = emailService;
         }
 
-        // ── Dashboard ────────────────────────────────────────────────────
+     
 
         [HttpGet]
         public IActionResult Index()
@@ -58,46 +60,113 @@ namespace finalyearproject.UI.Controllers
             return View();
         }
 
-        // ── Pending Users Page ───────────────────────────────────────────
+     
 
         [HttpGet]
         public IActionResult PendingUsers()
         {
+            return RedirectToAction(nameof(PendingSkills));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSkillApprovalStats()
+        {
+            var row = await _userRepository.GetSkillApprovalStatsAsync();
+            if (row == null)
+                return Json(new { pendingCount = 0, approvedCount = 0, rejectedCount = 0 });
+
+            return Json(new
+            {
+                pendingCount = ToInt(row.PendingCount ?? row.pendingCount),
+                approvedCount = ToInt(row.ApprovedCount ?? row.approvedCount),
+                rejectedCount = ToInt(row.RejectedCount ?? row.rejectedCount)
+            });
+        }
+
+        private static int ToInt(object? value)
+        {
+            if (value == null || value is DBNull) return 0;
+            return Convert.ToInt32(value);
+        }
+
+        [HttpGet]
+        public IActionResult PendingSkills()
+        {
             return View();
         }
 
-        // Returns PENDING users as JSON (sp_GetPendingUsers).
-        // Keep this endpoint simple and reliable: pending approvals must always show.
+        [HttpGet]
+        public async Task<IActionResult> GetPendingUserSkills()
+        {
+            try
+            {
+                var rows = await _userRepository.GetPendingUserSkillsAsync();
+                return Json(rows);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Could not load pending skills. Re-run sp_GetPendingUserSkills.sql in SSMS.", detail = ex.Message });
+            }
+        }
 
-        //[HttpGet]
-        //public async Task<IActionResult> GetPendingUsers()
-        //{
-        //    var users = await _userRepository.GetAllUsersAsync();
+        [HttpPost]
+        public async Task<IActionResult> ApproveUserSkill(int userSkillId)
+        {
+            var (success, message, email, username, skillSummary) =
+                await _userRepository.ApproveUserSkillAsync(userSkillId);
 
-        //    var rows = users.Select(u => new
-        //    {
-        //        userId = (int)u.UserId,
-        //        username = (string)(u.Username ?? ""),
-        //        email = (string)(u.Email ?? ""),
-        //        phoneNumber = (string)(u.PhoneNumber ?? ""),
-        //        cvPath = (string)(u.CVPath ?? ""),
-        //        portfolioUrl = (string)(u.PortfolioUrl ?? ""),
-        //        createdAt = (DateTime?)u.CreatedAt,
-        //        isApprovedByAdmin = (bool)u.IsApprovedByAdmin,
-        //        isRejected = (bool)u.IsRejected
-        //    }).ToList();
+            if (success && !string.IsNullOrWhiteSpace(email))
+            {
+                await _emailService.SendSkillApprovedEmailAsync(
+                    email,
+                    username ?? "User",
+                    skillSummary ?? "your skill");
+            }
 
-        //    return Json(rows);
-        //}
+            return Json(new { success, message });
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> RejectUserSkill(int userSkillId, string reason)
+        {
+            var cleanReason = string.IsNullOrWhiteSpace(reason)
+                ? "Your skill submission did not meet our verification requirements."
+                : reason.Trim();
+
+            var (success, message, email, username, skillSummary, rejectionReason) =
+                await _userRepository.RejectUserSkillAsync(userSkillId, cleanReason);
+
+            if (success && !string.IsNullOrWhiteSpace(email))
+            {
+                await _emailService.SendSkillRejectedEmailAsync(
+                    email,
+                    username ?? "User",
+                    skillSummary ?? "your skill",
+                    rejectionReason ?? cleanReason);
+            }
+
+            return Json(new { success, message });
+        }
+
+       
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            return Json(MapUserListForAdmin(users));
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetPendingUsers()
         {
-            // This returns ALL email-verified users (pending/approved/rejected) in ONE row per user.
             var users = await _userRepository.GetAllUsersAsync();
+            return Json(MapUserListForAdmin(users));
+        }
 
-            var rows = users.Select(u => new
+        private static List<object> MapUserListForAdmin(IEnumerable<User> users)
+        {
+            return users.Select(u => (object)new
             {
                 userId = (int)u.UserId,
                 username = (string)(u.Username ?? ""),
@@ -106,19 +175,14 @@ namespace finalyearproject.UI.Controllers
                 cvPath = (string)(u.CVPath ?? ""),
                 portfolioUrl = (string)(u.PortfolioUrl ?? ""),
                 createdAt = (DateTime?)u.CreatedAt,
-
                 skillCount = (int)u.SkillCount,
                 skillsJson = (string)(u.SkillsJson ?? "[]"),
-
                 isApprovedByAdmin = (bool)u.IsApprovedByAdmin,
                 isRejected = (bool)u.IsRejected
             }).ToList();
-
-            return Json(rows);
         }
 
-        // ── Recent user skill / CV changes for dashboard ────────────────
-        // Group by user: one row per user, with all their changes in the popup.
+       
 
         [HttpGet]
         public async Task<IActionResult> GetRecentUserChanges()
@@ -193,7 +257,7 @@ namespace finalyearproject.UI.Controllers
             }).ToList();
             return Json(enriched);
         }
-        // ── Approve User ─────────────────────────────────────────────────
+    
 
         [HttpPost]
         public async Task<IActionResult> ApproveUser(int userId)
@@ -222,8 +286,7 @@ namespace finalyearproject.UI.Controllers
             return Json(new { success, message });
         }
 
-        // ── Reject User ──────────────────────────────────────────────────
-        // Reject = delete user from system and send an email with a reason.
+ 
 
         [HttpPost]
         public async Task<IActionResult> RejectUser(int userId, string reason)
@@ -256,7 +319,6 @@ namespace finalyearproject.UI.Controllers
             return Json(new { success, message });
         }
 
-        // ── Other Admin Pages (add your existing ones below) ─────────────
 
         [HttpGet]
         public IActionResult About()

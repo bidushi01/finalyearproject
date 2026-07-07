@@ -23,7 +23,7 @@
 </style>
 
 <div class="requests-wrap">
-    <h2 class="mb-4" style="color:#e8f4f8;">🧑‍🤝‍🧑 Help Inbox (as helper)</h2>
+    <h2 class="mb-4" style="color:#e8f4f8;">Help Inbox (as helper)</h2>
     <p class="text-muted mb-4">These are the help requests that other users have sent to you. Accept or reject requests and chat with seekers here.</p>
 
     <h5 class="section-title">Requests sent to you</h5>
@@ -49,7 +49,7 @@
 
 <!-- Chat modal -->
 <div class="modal fade" id="chatModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="background:#0a0f1d; border:1px solid rgba(255,255,255,0.12);">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title text-white" id="chatModalTitle">Chat</h5>
@@ -58,6 +58,9 @@
             <div class="modal-body">
                 <div id="chatCompletedBanner" class="alert alert-info py-2 mb-2 d-none" style="background:rgba(72,187,120,0.2);border:1px solid rgba(72,187,120,0.3);color:#48bb78;">
                     ✓ Task Completed — View-only. Messaging is disabled.
+                </div>
+                <div id="peerAssistVideoActions" class="mb-2 d-none">
+                    <button type="button" class="btn btn-sm btn-success" id="peerAssistStartVideoBtn">Start video call</button>
                 </div>
                 <div id="chatMessages" class="chat-box"></div>
                 <div id="chatSendArea" class="chat-send">
@@ -101,12 +104,19 @@ $(function () {
 
     function renderHelper(rows) {
         var html = '';
+        var visibleCount = 0;
         if (!rows.length) {
             $('#asHelperList').html('<p class="text-muted">No requests sent to you.</p>');
             return;
         }
         rows.forEach(function (r) {
             var status = (r.Status || r.status || '').toLowerCase();
+
+            // Hide rejected or withdrawn rows (no chat needed)
+            if (status === 'rejected' || status === 'withdrawn') {
+                return;
+            }
+
             var seekerName = r.SeekerUsername || r.seekerUsername || ('User #' + (r.SeekerId || r.seekerId));
             html += '<div class="req-card">';
             html += '<span class="who">' + seekerName + '</span> asked for help';
@@ -124,7 +134,13 @@ $(function () {
                 html += ' <button type="button" class="btn btn-sm btn-outline-secondary ms-2 chat-open" data-id="' + id + '" data-name="' + seekerName + '" data-status="' + status + '">View chat</button>';
             }
             html += '</div>';
+            visibleCount++;
         });
+
+        if (!visibleCount) {
+            $('#asHelperList').html('<p class="text-muted">No active requests right now.</p>');
+            return;
+        }
         $('#asHelperList').html(html);
         $('#asHelperList .btn-success').on('click', function () {
             var id = $(this).data('id');
@@ -156,9 +172,20 @@ $(function () {
             $('#chatCompletedBanner').addClass('d-none');
             $('#chatSendArea').removeClass('d-none');
         }
+        if (window.peerAssistVideoCall) {
+            window.peerAssistVideoCall.onChatOpened({
+                helpRequestId: currentHelpRequestId,
+                status: currentChatStatus,
+                otherName: currentOtherName
+            });
+        }
         $('#chatModal').modal('show');
         refreshChat();
     }
+
+    $('#chatModal').on('hidden.bs.modal', function () {
+        if (window.peerAssistVideoCall) window.peerAssistVideoCall.onChatClosed();
+    });
 
     function refreshChat() {
         if (!currentHelpRequestId) return;

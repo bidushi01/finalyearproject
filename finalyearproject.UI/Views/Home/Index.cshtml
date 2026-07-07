@@ -1,129 +1,3 @@
-@* @{
-    ViewData["Title"] = "Professional Peer-to-Peer Help";
-}
-
-<section class="py-5 position-relative">
-    <div class="container py-5 mt-4">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6" data-aos="fade-right">
-                <div class="d-inline-flex align-items-center rounded-pill px-3 py-1 mb-4" style="background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3);">
-                    <span style="color: #a78bfa; font-size: 0.85rem; font-weight: 600;">Verified Talent Ecosystem</span>
-                </div>
-                <h1 class="display-3 mb-4">
-                    Verified Peer-to-Peer <br />
-                    <span style="background: linear-gradient(90deg, #a78bfa, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Skill Assistance</span>
-                </h1>
-                <p class="mb-5 fs-5">
-                    Bridge technical gaps through a structured skill hierarchy. Connect with
-                    <strong>admin-approved experts</strong> and build your professional ranking
-                    through verified matching.
-                </p>
-                <div class="d-flex gap-3">
-                    <a asp-action="Register" class="btn btn-main">Get Verified Now</a>
-                    <a href="#process" class="btn btn-outline-light px-4 py-3 border-secondary border-opacity-50">Explore System</a>
-                </div>
-            </div>
-            <div class="col-lg-6" data-aos="zoom-in">
-                <div class="position-relative p-2 rounded-5" style="background: linear-gradient(45deg, rgba(124, 58, 237, 0.2), transparent);">
-                    <img src="~/Content/peer-support.jpeg" class="img-fluid rounded-5 shadow-2xl" alt="Peer Collaboration" style="width:100%; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-
-<section id="process" class="py-5" style="background: rgba(255,255,255,0.01);">
-    <div class="container py-5">
-        <div class="text-center mb-5">
-            <h2 class="display-5">The PeerAssist Ecosystem</h2>
-            <p>A structured approach to verified expertise.</p>
-        </div>
-        <div class="row g-4 mt-2">
-            <div class="col-md-3" data-aos="fade-up">
-                <div class="p-4 rounded-4 h-100" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.05);">
-                    <div class="text-primary mb-3 fs-3 fw-bold opacity-50">01</div>
-                    <h5 class="text-white">Verify</h5>
-                    <p class="small">Register and pass manual admin vetting to ensure network quality.</p>
-                </div>
-            </div>
-            <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
-                <div class="p-4 rounded-4 h-100" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.05);">
-                    <div class="text-primary mb-3 fs-3 fw-bold opacity-50">02</div>
-                    <h5 class="text-white">Map Skills</h5>
-                    <p class="small">Define expertise down to the micro-level using our skill hierarchy.</p>
-                </div>
-            </div>
-            <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
-                <div class="p-4 rounded-4 h-100" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.05);">
-                    <div class="text-primary mb-3 fs-3 fw-bold opacity-50">03</div>
-                    <h5 class="text-white">Smart Match</h5>
-                    <p class="small">Connect with peers based on availability and experience levels.</p>
-                </div>
-            </div>
-            <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
-                <div class="p-4 rounded-4 h-100" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.05);">
-                    <div class="text-primary mb-3 fs-3 fw-bold opacity-50">04</div>
-                    <h5 class="text-white">Rank & Build</h5>
-                    <p class="small">Earn ratings to build a recruiter-ready professional profile.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="py-5">
-    <div class="container py-5">
-        <div class="row g-4">
-            <div class="col-md-4" data-aos="fade-right">
-                <div class="p-5 rounded-5 h-100" style="background: #0f172a;">
-                    <h3 class="h4 mb-4">Seeker</h3>
-                    <p class="small mb-4">Match with top-tier helpers for granular sub-skills and grow your knowledge faster.</p>
-                    <a href="#" class="text-primary text-decoration-none fw-bold small">Explore Flow →</a>
-                </div>
-            </div>
-            <div class="col-md-4" data-aos="fade-up">
-                <div class="p-5 rounded-5 h-100 border border-primary border-opacity-20">
-                    <h3 class="h4 mb-4">Helper</h3>
-                    <p class="small mb-4">Share your verified expertise, earn points, and build your professional ranking.</p>
-                    <a href="#" class="text-primary text-decoration-none fw-bold small">Earn Points →</a>
-                </div>
-            </div>
-            <div class="col-md-4" data-aos="fade-left">
-                <div class="p-5 rounded-5 h-100" style="background: #1e1b4b;">
-                    <h3 class="h4 mb-4 text-primary">Recruiter</h3>
-                    <p class="small mb-4 text-white opacity-75">Identify high-potential talent through peer-rated performance metrics.</p>
-                    <a href="#" class="text-white text-decoration-none fw-bold small">Business Portal →</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="py-5 bg-dark border-top border-bottom border-secondary border-opacity-10">
-    <div class="container text-center py-4">
-        <div class="row g-4 opacity-50">
-            <div class="col-md-3"><span>Admin Verified</span></div>
-            <div class="col-md-3"><span>JWT Encrypted</span></div>
-            <div class="col-md-3"><span>OTP Verification</span></div>
-            <div class="col-md-3"><span>Structured Data</span></div>
-        </div>
-    </div>
-</section>
-
-<section class="py-5">
-    <div class="container py-5">
-        <div class="p-5 rounded-5 text-center shadow-2xl" style="background: linear-gradient(135deg, #1e1b4b, #0a0f1d); border: 1px solid rgba(255,255,255,0.05);">
-            <h2 class="display-5 mb-4">Ready to Verify Your Expertise?</h2>
-            <p class="mb-5 mx-auto opacity-75" style="max-width: 600px;">Join the network where skills are measured by peer results, not just claims.</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a asp-action="Register" class="btn btn-main px-5 py-3">User Registration</a>
-                <button class="btn btn-outline-light px-5 py-3">Recruiter Access</button>
-            </div>
-        </div>
-    </div>
-</section> *@
-
 @{
     ViewData["Title"] = "Professional Peer-to-Peer Help";
 }
@@ -212,13 +86,6 @@
                     <a href="#" class="text-primary text-decoration-none fw-bold small">Earn Points →</a>
                 </div>
             </div>
-            <div class="col-md-4" data-aos="fade-left">
-                <div class="p-5 rounded-5 h-100" style="background: #1e1b4b;">
-                    <h3 class="h4 mb-4 text-primary">Recruiter</h3>
-                    <p class="small mb-4 text-white opacity-75">Identify high-potential talent through peer-rated performance metrics.</p>
-                    <a href="#" class="text-white text-decoration-none fw-bold small">Business Portal →</a>
-                </div>
-            </div>
         </div>
     </div>
 </section>
@@ -226,8 +93,8 @@
 <section class="py-5" style="background: rgba(124, 58, 237, 0.02);">
     <div class="container py-5">
         <div class="text-center mb-5">
-            <h2 class="display-6 fw-bold">Common Questions</h2>
-            <p class="text-white-50">Everything you need to know about the platform.</p>
+            <h2 class="display-6 fw-bold">Questions &amp; answers</h2>
+            <p class="text-white-50">More common questions about PeerAssist — how matching, sessions, and your account work.</p>
         </div>
         <div class="row justify-content-center">
             <div class="col-lg-8">
@@ -240,7 +107,7 @@
                         </h2>
                         <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                             <div class="accordion-body text-white-50">
-                                Our system uses micro-mapping technology. When you request help, we scan our database for peers who have specifically mastered the sub-skill you need, matching you based on their rating and availability.
+                                You choose a field, skill, and sub-skill, plus when you are free. We list verified helpers who teach that exact sub-skill, are available in that window, and are not already busy. They are ranked using a score (HES) that blends responsiveness, ratings, and experience — so “Best Match” reflects quality, not random order.
                             </div>
                         </div>
                     </div>
@@ -252,19 +119,79 @@
                         </h2>
                         <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                             <div class="accordion-body text-white-50">
-                                Absolutely. We use JWT encryption and OTP verification to ensure that only authorized users can access communication channels and profile data.
+                                Accounts use secure sign-in and email verification (OTP) where enabled. Chat messages are protected for storage so plain text is not exposed casually in the database. Only the people in that help request should see the conversation in the app.
                             </div>
                         </div>
                     </div>
                     <div class="accordion-item bg-transparent border-bottom border-secondary border-opacity-25 py-3">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed bg-transparent text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                Can I use PeerAssist for hiring?
+                                Why can’t I ask another helper while one request is still pending?
                             </button>
                         </h2>
                         <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                             <div class="accordion-body text-white-50">
-                                Yes! Recruiters can access a dedicated portal to view peer-validated performance metrics, allowing them to find top-tier talent based on actual results rather than just resumes.
+                                You can only have one active “seeker” flow at a time: either waiting on a helper, already in a session, or helping someone else. Complete or cancel your current request under <strong>My Requests</strong> (or wait for a timeout where applicable), then you can search and ask someone else.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                How long does a helper have to respond?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-white-50">
+                                Helpers are expected to respond within about <strong>two minutes</strong>. If there is no response, the pending request can be released so you are free to choose another helper without staying stuck.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                Can I be both a seeker and a helper?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-white-50">
+                                Yes — add the skills you can teach and use <strong>Ask for Help</strong> when you need support. The platform only allows <strong>one busy state at a time</strong> (for example, you cannot stack multiple outgoing requests or overlap incompatible states), which keeps the experience fair for everyone.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                                What happens after a session ends?
+                            </button>
+                        </h2>
+                        <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-white-50">
+                                The seeker marks the session completed or not completed and can rate the helper. That feedback feeds into future matching. Points and profile stats update so good helpers stay visible.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                                How do I cancel a request I sent?
+                            </button>
+                        </h2>
+                        <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-white-50">
+                                Open <strong>My Requests</strong> as a seeker. You can withdraw a pending request from there. After it is cleared, you can run a new search on <strong>Ask for Help</strong>.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
+                                Why might a helper not appear for a skill I also have?
+                            </button>
+                        </h2>
+                        <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-white-50">
+                                If you already list that exact field, skill, and sub-skill on your profile, we only show helpers whose <strong>experience level is the same or higher</strong> than yours for that row — so you are not matched with someone more junior for a topic you already know at a senior level.
                             </div>
                         </div>
                     </div>
@@ -293,7 +220,6 @@
             {
                 <div class="d-flex justify-content-center gap-3">
                     <a asp-action="Register" asp-controller="Account" class="btn btn-main px-5 py-3">User Registration</a>
-                    <button class="btn btn-outline-light px-5 py-3">Recruiter Access</button>
                 </div>
             }
         </div>

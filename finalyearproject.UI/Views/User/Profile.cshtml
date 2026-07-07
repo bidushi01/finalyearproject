@@ -308,9 +308,9 @@
             <h2>@User.Identity?.Name</h2>
             <span class="badge-approved">✓ Verified Member</span>
             <div class="profile-info-row" id="profileInfoRow">
-                <div class="profile-info-item">📧 <span id="userEmail">Loading...</span></div>
-                <div class="profile-info-item">📞 <span id="userPhone">Loading...</span></div>
-                <div class="profile-info-item">📅 <span id="userJoined">Loading...</span></div>
+                <div class="profile-info-item"> <span id="userEmail">Loading...</span></div>
+                <div class="profile-info-item"> <span id="userPhone">Loading...</span></div>
+                <div class="profile-info-item"> <span id="userJoined">Loading...</span></div>
             </div>
         </div>
     </div>
@@ -334,16 +334,16 @@
     <!-- ── Quick Actions ── -->
     <div class="quick-actions">
         <a asp-controller="Account" asp-action="AddSkills" class="action-btn action-btn-primary">
-            ➕ Add New Skill
+            Add New Skill
         </a>
         <button type="button" class="action-btn action-btn-outline" id="btnEditCv">
-            📄 Edit CV &amp; Portfolio
+            Edit CV &amp; Portfolio
         </button>
         <a asp-controller="User" asp-action="AskHelp" class="action-btn action-btn-success">
-            🙋 Ask for Help
+            Ask for Help
         </a>
         <a asp-controller="Account" asp-action="ChangePassword" class="action-btn action-btn-outline">
-            🔒 Change Password
+            Change Password
         </a>
     </div>
 

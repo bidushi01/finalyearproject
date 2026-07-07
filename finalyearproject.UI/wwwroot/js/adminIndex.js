@@ -74,7 +74,9 @@ function openSkillsModal(user) {
 
             $('#skillsGrid').dxDataGrid({
                 dataSource: skills,
-                keyExpr: 'UserSkillId',
+                keyExpr: function (row) {
+                    return row.userSkillId || row.UserSkillId || row.subSkillId || row.SubSkillId;
+                },
                 showBorders: true,
                 rowAlternationEnabled: true,
                 columnAutoWidth: true,
@@ -84,19 +86,48 @@ function openSkillsModal(user) {
                     showNavigationButtons: true
                 },
                 columns: [
-                    { dataField: 'FieldName', caption: 'Field' },
-                    { dataField: 'SkillName', caption: 'Skill' },
-                    { dataField: 'SubSkillName', caption: 'Sub-skill' },
                     {
-                        dataField: 'ExperienceLevel',
+                        caption: 'Status',
+                        width: 110,
+                        cellTemplate: function (c, o) {
+                            var st = (o.data.approvalStatus || o.data.ApprovalStatus || '—').toString();
+                            $(c).text(st);
+                        }
+                    },
+                    {
+                        caption: 'Field',
+                        cellTemplate: function (c, o) {
+                            $(c).text(o.data.fieldName || o.data.FieldName || '—');
+                        }
+                    },
+                    {
+                        caption: 'Skill',
+                        cellTemplate: function (c, o) {
+                            $(c).text(o.data.skillName || o.data.SkillName || '—');
+                        }
+                    },
+                    {
+                        caption: 'Sub-skill',
+                        cellTemplate: function (c, o) {
+                            $(c).text(o.data.subSkillName || o.data.SubSkillName || '—');
+                        }
+                    },
+                    {
                         caption: 'Experience',
                         width: 130,
                         cellTemplate: function (c, o) {
-                            var text = levels[o.value] || 'N/A';
+                            var lvl = o.data.experienceLevel || o.data.ExperienceLevel;
+                            var text = levels[lvl] || 'N/A';
                             $('<span>').text(text).appendTo(c);
                         }
                     },
-                    { dataField: 'AvailableDays', caption: 'Days', width: 130 },
+                    {
+                        caption: 'Days',
+                        width: 130,
+                        cellTemplate: function (c, o) {
+                            $(c).text(o.data.availableDays || o.data.AvailableDays || '—');
+                        }
+                    },
                     {
                         caption: 'Time',
                         width: 120,
@@ -146,14 +177,21 @@ function openSkillsModal(user) {
 // Load help statistics for admin dashboard
 function loadHelpStatistics() {
     $.getJSON('/Admin/GetHelpStatistics').done(function (stats) {
-        var dashHelpers = $('#dashTotalHelpers');
-        if (dashHelpers.length) dashHelpers.text(stats.TotalHelpers ?? 0);
-        var dashHelps = $('#dashTotalHelps');
-        if (dashHelps.length) dashHelps.text(stats.TotalHelpsGiven ?? 0);
-        var dashNotHelped = $('#dashRequestsNotHelped');
-        if (dashNotHelped.length) dashNotHelped.text(stats.RequestsNotHelped ?? 0);
+        // ASP.NET Core JSON uses camelCase by default; support both shapes.
+        stats = stats || {};
+        var totalHelpers = (stats.totalHelpers ?? stats.TotalHelpers ?? 0);
+        var totalHelpsGiven = (stats.totalHelpsGiven ?? stats.TotalHelpsGiven ?? 0);
+        var requestsNotHelped = (stats.requestsNotHelped ?? stats.RequestsNotHelped ?? 0);
+        var helpers = (stats.helperBreakdown || stats.HelperBreakdown || []);
+        var notHelped = (stats.usersWhoDidNotHelp || stats.UsersWhoDidNotHelp || []);
 
-        var helpers = stats.HelperBreakdown || [];
+        var dashHelpers = $('#dashTotalHelpers');
+        if (dashHelpers.length) dashHelpers.text(totalHelpers);
+        var dashHelps = $('#dashTotalHelps');
+        if (dashHelps.length) dashHelps.text(totalHelpsGiven);
+        var dashNotHelped = $('#dashRequestsNotHelped');
+        if (dashNotHelped.length) dashNotHelped.text(requestsNotHelped);
+
         var helpersEl = $('#helpersGrid');
         if (helpersEl.length) helpersEl.dxDataGrid({
             dataSource: helpers,
@@ -168,7 +206,6 @@ function loadHelpStatistics() {
             ]
         });
 
-        var notHelped = stats.UsersWhoDidNotHelp || [];
         var notHelpedEl = $('#usersNotHelpedGrid');
         if (notHelpedEl.length) notHelpedEl.dxDataGrid({
             dataSource: notHelped,
@@ -180,12 +217,10 @@ function loadHelpStatistics() {
             columns: [
                 { dataField: 'Username', caption: 'User' },
                 { dataField: 'RequestsReceived', caption: 'Requests received', dataType: 'number' },
-                { dataField: 'Accepted', caption: 'Accepted', dataType: 'number', width: 90 },
                 { dataField: 'Completed', caption: 'Completed', dataType: 'number', width: 100 },
                 { dataField: 'NotCompleted', caption: 'Not completed', dataType: 'number', width: 120 },
                 { dataField: 'Rejected', caption: 'Rejected', dataType: 'number', width: 90 },
-                { dataField: 'Withdrawn', caption: 'Withdrawn', dataType: 'number', width: 100 },
-                { dataField: 'Pending', caption: 'Pending', dataType: 'number', width: 90 }
+                { dataField: 'Withdrawn', caption: 'Withdrawn', dataType: 'number', width: 100 }
             ]
         });
     });
@@ -195,24 +230,22 @@ function loadHelpStatistics() {
 $(function () {
     loadHelpStatistics();
 
+    fetch('/Admin/GetSkillApprovalStats')
+        .then(function (res) { return res.json(); })
+        .then(function (stats) {
+            stats = stats || {};
+            $('#dashPending').text(stats.pendingCount ?? 0);
+            $('#dashApproved').text(stats.approvedCount ?? 0);
+            $('#dashRejected').text(stats.rejectedCount ?? 0);
+        });
+
     fetch('/Admin/GetPendingUsers')
         .then(function (res) { return res.json(); })
         .then(function (users) {
             if (!Array.isArray(users)) users = [];
 
-            var pending = 0, approved = 0, rejected = 0;
-            users.forEach(function (u) {
-                if (u.isApprovedByAdmin) approved++;
-                else if (u.isRejected) rejected++;
-                else pending++;
-            });
-
-            $('#dashPending').text(pending);
-            $('#dashApproved').text(approved);
-            $('#dashRejected').text(rejected);
-
             var recentUsersEl = $('#recentUsersGrid');
-            if (recentUsersEl.length === 0) return; // No grid on dashboard; counts are updated above
+            if (recentUsersEl.length === 0) return;
 
             users.sort(function (a, b) {
                 var da = a.createdAt ? new Date(a.createdAt) : new Date(0);

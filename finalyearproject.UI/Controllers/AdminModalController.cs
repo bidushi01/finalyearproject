@@ -28,7 +28,7 @@ namespace finalyearproject.UI.Controllers
         [HttpGet]
         public async Task<IActionResult> UserSkills(int userId)
         {
-            var skills = await _userRepository.GetUserSkillsDisplayAsync(userId);
+            var skills = await _userRepository.GetUserSkillsDisplayAsync(userId, approvedOnly: false);
             return Json(skills);
         }
 

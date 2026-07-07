@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using System.Linq;
 using System.Security.Claims;
 using finalyearproject.UI.Models;
 using finalyearproject.Data.Repository;
@@ -18,6 +19,8 @@ namespace finalyearproject.UI.Controllers
         private readonly IPasswordService _passwordService;
         private readonly IEmailService _emailService;
 
+        private const string SkillDraftSessionKey = "SkillDraft";
+
         public AccountController(
             IUserRepository userRepository,
             IPasswordService passwordService,
@@ -27,6 +30,15 @@ namespace finalyearproject.UI.Controllers
             _passwordService = passwordService;
             _emailService = emailService;
         }
+
+        private List<Dictionary<string, object>> GetSkillDraft()
+        {
+            var json = HttpContext.Session.GetString(SkillDraftSessionKey) ?? "[]";
+            return JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json) ?? new();
+        }
+
+        private void SetSkillDraft(List<Dictionary<string, object>> skills) =>
+            HttpContext.Session.SetString(SkillDraftSessionKey, JsonConvert.SerializeObject(skills));
 
         // ═══════════════════════════════════════════════════
         // REGISTER
@@ -68,45 +80,42 @@ namespace finalyearproject.UI.Controllers
             HttpContext.Session.SetString("PasswordSalt", salt);
             HttpContext.Session.SetString("PhoneNumber", model.PhoneNumber);
             HttpContext.Session.SetString("UserSkills", "[]");
+            HttpContext.Session.SetString("CVPath", "");
+            HttpContext.Session.SetString("PortfolioUrl", "");
 
-            TempData["SuccessMessage"] = "✅ Basic registration successful! Now add your skills and upload your CV.";
-            return RedirectToAction("AddSkills");
+            string otpCode = GenerateOTP();
+            DateTime expiresAt = DateTime.Now.AddMinutes(10);
+            await _userRepository.StoreOTPAsync(model.Email, otpCode, expiresAt);
+            await _emailService.SendOTPEmailAsync(model.Email, otpCode);
+
+            TempData["SuccessMessage"] = "Check your email for the verification code.";
+            return RedirectToAction("VerifyOTP");
         }
 
         // ═══════════════════════════════════════════════════
-        // ADD SKILLS
+        // ADD SKILLS (logged-in helpers only)
         // ═══════════════════════════════════════════════════
 
         [HttpGet]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> AddSkills()
         {
-            // Allow logged-in users to add skills to their profile
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!string.IsNullOrEmpty(userIdClaim))
-                {
-                    var user = await _userRepository.GetUserByIdAsync(int.Parse(userIdClaim));
-                    if (user != null)
-                    {
-                        ViewBag.Username = user.Username;
-                        ViewBag.Email = user.Email;
-                        ViewBag.IsLoggedInUser = true;
-                        ViewBag.UserId = user.UserId;
-                        return View();
-                    }
-                }
-            }
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdClaim))
+                return RedirectToAction("Login");
 
-            var username = HttpContext.Session.GetString("Username");
-            var email = HttpContext.Session.GetString("Email");
+            var user = await _userRepository.GetUserByIdAsync(int.Parse(userIdClaim));
+            if (user == null)
+                return RedirectToAction("Login");
 
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email))
-                return RedirectToAction("Register");
+            ViewBag.Username = user.Username;
+            ViewBag.Email = user.Email;
+            ViewBag.IsLoggedInUser = true;
+            ViewBag.UserId = user.UserId;
 
-            ViewBag.Username = username;
-            ViewBag.Email = email;
-            ViewBag.IsLoggedInUser = false;
+            if (HttpContext.Session.GetString(SkillDraftSessionKey) == null)
+                SetSkillDraft(new List<Dictionary<string, object>>());
+
             return View();
         }
 
@@ -140,7 +149,7 @@ namespace finalyearproject.UI.Controllers
             return Json(skills);
         }
 
-        // Logged-in users: load skills directly from database
+        // Logged-in users: DB skills (approved / pending review / rejected) + session drafts
         [HttpGet]
         [Authorize(Roles = "User")]
         public async Task<IActionResult> GetCurrentUserSkills()
@@ -150,8 +159,26 @@ namespace finalyearproject.UI.Controllers
                 return Unauthorized();
 
             int userId = int.Parse(idStr);
-            var skills = await _userRepository.GetUserSkillsDisplayAsync(userId);
-            return Json(skills);
+            var dbSkills = await _userRepository.GetUserSkillsDisplayAsync(userId, approvedOnly: false);
+            var combined = new List<object>();
+            foreach (var s in dbSkills)
+                combined.Add(s);
+
+            foreach (var d in GetSkillDraft())
+            {
+                var copy = new Dictionary<string, object>(d);
+                copy["ApprovalStatus"] = "Draft";
+                combined.Add(copy);
+            }
+
+            return Json(combined);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "User")]
+        public IActionResult GetSkillDraftCount()
+        {
+            return Json(new { count = GetSkillDraft().Count });
         }
 
         [HttpPost]
@@ -200,6 +227,10 @@ namespace finalyearproject.UI.Controllers
             if (model == null)
                 return Json(new { success = false, message = "Invalid data received" });
 
+            var timeErr = ValidateAvailabilityTimes(model.AvailableTimeStart, model.AvailableTimeEnd, model.AvailableTimeSlots);
+            if (timeErr != null)
+                return Json(new { success = false, message = timeErr });
+
             var skillsJson = HttpContext.Session.GetString("UserSkills") ?? "[]";
             var skills = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(skillsJson);
 
@@ -223,7 +254,8 @@ namespace finalyearproject.UI.Controllers
                 { "ExperienceLevel",    model.ExperienceLevel },
                 { "AvailableDays",      model.AvailableDays },
                 { "AvailableTimeStart", model.AvailableTimeStart ?? "" },
-                { "AvailableTimeEnd",   model.AvailableTimeEnd ?? "" }
+                { "AvailableTimeEnd",   model.AvailableTimeEnd ?? "" },
+                { "AvailableTimeSlots", model.AvailableTimeSlots ?? "" }
             };
 
             skills.Add(tempSkill);
@@ -231,13 +263,22 @@ namespace finalyearproject.UI.Controllers
             return Json(new { success = true, message = "Skill added successfully", skill = tempSkill });
         }
 
-        // Logged-in users: write skill directly to UserSkills table (no OTP, no registration session)
+        // Logged-in users: keep new skills in session until SubmitSkillsForAdminReview
         [HttpPost]
         [Authorize(Roles = "User")]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> AddUserSkillForLoggedIn([FromBody] AddSkillViewModel model)
         {
+            try
+            {
             if (model == null)
                 return Json(new { success = false, message = "Invalid data received" });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).Where(m => !string.IsNullOrEmpty(m));
+                return Json(new { success = false, message = string.Join(" ", errors) });
+            }
 
             var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(idStr))
@@ -245,43 +286,269 @@ namespace finalyearproject.UI.Controllers
 
             int userId = int.Parse(idStr);
 
-            TimeSpan? startTime = null;
-            TimeSpan? endTime = null;
+            if (await SkillSubSkillAlreadyExistsAsync(userId, model.FieldId, model.SkillId, model.SubSkillId, model.TempId))
+                return Json(new { success = false, message = "You already have this sub-skill (or it is in your draft list)." });
 
-            if (!string.IsNullOrEmpty(model.AvailableTimeStart) &&
-                TimeSpan.TryParse(model.AvailableTimeStart, out var parsedStart))
-                startTime = parsedStart;
+            var timeErr = ValidateAvailabilityTimes(model.AvailableTimeStart, model.AvailableTimeEnd, model.AvailableTimeSlots);
+            if (timeErr != null)
+                return Json(new { success = false, message = timeErr });
 
-            if (!string.IsNullOrEmpty(model.AvailableTimeEnd) &&
-                TimeSpan.TryParse(model.AvailableTimeEnd, out var parsedEnd))
-                endTime = parsedEnd;
+            var fields = await _userRepository.GetAllFieldsAsync();
+            var skillsList = await _userRepository.GetSkillsByFieldAsync(model.FieldId);
+            var subSkills = await _userRepository.GetSubSkillsBySkillAsync(model.SkillId);
 
-            var (result, message) = await _userRepository.AddUserSkillAsync(
-                userId,
-                model.FieldId,
-                model.SkillId,
-                model.SubSkillId,
-                model.ExperienceLevel,
-                model.AvailableDays,
-                startTime,
-                endTime);
+            var field = ((IEnumerable<dynamic>)fields).FirstOrDefault(f => DynInt(f, "FieldId") == model.FieldId);
+            var skill = ((IEnumerable<dynamic>)skillsList).FirstOrDefault(s => DynInt(s, "SkillId") == model.SkillId);
+            var subSkill = ((IEnumerable<dynamic>)subSkills).FirstOrDefault(ss => DynInt(ss, "SubSkillId") == model.SubSkillId);
 
-            if (result > 0)
+            var draft = GetSkillDraft();
+            var entry = new Dictionary<string, object>
             {
-                // Let the database/stored procedure decide how to notify or log this change.
-                await _userRepository.LogUserSkillChangeAsync(
-                    userId,
-                    "ADD_OR_UPDATE_SKILL",
-                    model.FieldId,
-                    model.SkillId,
-                    model.SubSkillId);
-            }
+                { "TempId", string.IsNullOrEmpty(model.TempId) ? Guid.NewGuid().ToString() : model.TempId },
+                { "FieldId", model.FieldId },
+                { "FieldName", field?.FieldName ?? "" },
+                { "SkillId", model.SkillId },
+                { "SkillName", skill?.SkillName ?? "" },
+                { "SubSkillId", model.SubSkillId },
+                { "SubSkillName", subSkill?.SubSkillName ?? "" },
+                { "ExperienceLevel", model.ExperienceLevel },
+                { "AvailableDays", model.AvailableDays },
+                { "AvailableTimeStart", model.AvailableTimeStart ?? "" },
+                { "AvailableTimeEnd", model.AvailableTimeEnd ?? "" },
+                { "AvailableTimeSlots", model.AvailableTimeSlots ?? "" }
+            };
+
+            if (!string.IsNullOrEmpty(model.TempId))
+                draft.RemoveAll(s => s.ContainsKey("TempId") && s["TempId"]?.ToString() == model.TempId);
+
+            draft.Add(entry);
+            SetSkillDraft(draft);
 
             return Json(new
             {
-                success = result > 0,
-                message
+                success = true,
+                message = "Skill added to your list. Upload your CV, then click Submit for admin verification.",
+                skill = entry,
+                isDraft = true
             });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Could not add skill: " + ex.Message });
+            }
+        }
+
+        private static int DynInt(dynamic row, string name)
+        {
+            if (row == null) return 0;
+            try
+            {
+                var camel = char.ToLowerInvariant(name[0]) + name[1..];
+                if (row is IDictionary<string, object> dict)
+                {
+                    if (dict.TryGetValue(name, out var v) || dict.TryGetValue(camel, out v))
+                        return Convert.ToInt32(v ?? 0);
+                }
+                var prop = row.GetType().GetProperty(name) ?? row.GetType().GetProperty(camel);
+                if (prop != null)
+                    return Convert.ToInt32(prop.GetValue(row) ?? 0);
+            }
+            catch { /* ignore */ }
+            return 0;
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "User")]
+        [IgnoreAntiforgeryToken]
+        public IActionResult DeleteDraftSkill(string tempId)
+        {
+            if (string.IsNullOrEmpty(tempId))
+                return Json(new { success = false, message = "Invalid skill." });
+
+            var draft = GetSkillDraft();
+            draft.RemoveAll(s => s.ContainsKey("TempId") && s["TempId"]?.ToString() == tempId);
+            SetSkillDraft(draft);
+            return Json(new { success = true, message = "Draft skill removed." });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "User")]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> SubmitSkillsForAdminReview(IFormFile cv)
+        {
+            var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(idStr))
+                return Json(new { success = false, message = "User is not logged in." });
+
+            int userId = int.Parse(idStr);
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+                return Json(new { success = false, message = "User not found." });
+
+            if (cv != null && cv.Length > 0)
+            {
+                var newCvPath = await SaveFileAsync(cv, "uploads");
+                await _userRepository.UpdateUserDocumentsAsync(userId, newCvPath, user.PortfolioUrl ?? string.Empty);
+                user = await _userRepository.GetUserByIdAsync(userId);
+            }
+
+            if (string.IsNullOrWhiteSpace(user?.CVPath))
+                return Json(new { success = false, message = "Please upload and save your CV before submitting skills for admin verification." });
+
+            var draft = GetSkillDraft();
+            if (draft.Count == 0)
+                return Json(new { success = false, message = "Add at least one skill to your list before submitting." });
+
+            int added = 0;
+            var errors = new List<string>();
+
+            foreach (var skill in draft)
+            {
+                int fieldId = Convert.ToInt32(skill["FieldId"]);
+                int skillId = Convert.ToInt32(skill["SkillId"]);
+                int subSkillId = Convert.ToInt32(skill["SubSkillId"]);
+                int experienceLevel = Convert.ToInt32(skill["ExperienceLevel"]);
+                var availableDays = skill["AvailableDays"]?.ToString() ?? "";
+
+                TimeSpan? startTime = null;
+                TimeSpan? endTime = null;
+                var startStr = skill["AvailableTimeStart"]?.ToString();
+                var endStr = skill["AvailableTimeEnd"]?.ToString();
+                var slotsJson = skill.ContainsKey("AvailableTimeSlots") ? skill["AvailableTimeSlots"]?.ToString() : null;
+                if (!string.IsNullOrEmpty(startStr) && TimeSpan.TryParse(startStr, out var ps))
+                    startTime = ps;
+                if (!string.IsNullOrEmpty(endStr) && TimeSpan.TryParse(endStr, out var pe))
+                    endTime = pe;
+
+                var slotErr = ValidateAvailabilityTimes(startStr, endStr, slotsJson);
+                if (slotErr != null)
+                {
+                    errors.Add(slotErr);
+                    continue;
+                }
+
+                var (result, message) = await _userRepository.AddUserSkillAsync(
+                    userId, fieldId, skillId, subSkillId, experienceLevel, availableDays, startTime, endTime, slotsJson);
+
+                if (result > 0)
+                {
+                    added++;
+                    await _userRepository.LogUserSkillChangeAsync(userId, "SUBMIT_SKILL_FOR_REVIEW", fieldId, skillId, subSkillId);
+                }
+                else if (!string.IsNullOrEmpty(message))
+                    errors.Add(message);
+            }
+
+            if (added == 0)
+                return Json(new { success = false, message = errors.FirstOrDefault() ?? "Could not submit skills." });
+
+            SetSkillDraft(new List<Dictionary<string, object>>());
+
+            var msg = added == 1
+                ? "1 skill sent for admin verification. You will receive email when admin approves or rejects it."
+                : $"{added} skills sent for admin verification. You will receive email when admin approves or rejects each one.";
+
+            if (errors.Count > 0)
+                msg += " Some skills were skipped: " + string.Join("; ", errors);
+
+            return Json(new { success = true, message = msg, submittedCount = added });
+        }
+
+        private async Task<bool> SkillSubSkillAlreadyExistsAsync(
+            int userId, int fieldId, int skillId, int subSkillId, string? excludeTempId)
+        {
+            foreach (var d in GetSkillDraft())
+            {
+                if (!string.IsNullOrEmpty(excludeTempId) &&
+                    d.ContainsKey("TempId") && d["TempId"]?.ToString() == excludeTempId)
+                    continue;
+
+                if (Convert.ToInt32(d["FieldId"]) == fieldId &&
+                    Convert.ToInt32(d["SkillId"]) == skillId &&
+                    Convert.ToInt32(d["SubSkillId"]) == subSkillId)
+                    return true;
+            }
+
+            if (await _userRepository.UserHasNonRejectedSkillAsync(userId, fieldId, skillId, subSkillId))
+                return true;
+
+            return false;
+        }
+
+        private static string? ValidateAvailabilityTimes(string? startStr, string? endStr, string? slotsJson)
+        {
+            if (!string.IsNullOrWhiteSpace(slotsJson))
+            {
+                try
+                {
+                    var slots = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(slotsJson);
+                    if (slots != null && slots.Count > 0)
+                    {
+                        var parsed = new List<(TimeSpan Start, TimeSpan End)>();
+                        foreach (var slot in slots)
+                        {
+                            slot.TryGetValue("start", out var sRaw);
+                            slot.TryGetValue("end", out var eRaw);
+                            if (!TimeSpan.TryParse(sRaw, out var s) || !TimeSpan.TryParse(eRaw, out var e))
+                                return "Invalid time slot.";
+                            if (e <= s)
+                                return "Each time slot must end later on the same day (cannot continue into the next day).";
+                            parsed.Add((s, e));
+                        }
+
+                        for (var i = 0; i < parsed.Count; i++)
+                        {
+                            for (var j = i + 1; j < parsed.Count; j++)
+                            {
+                                if (parsed[i].Start < parsed[j].End && parsed[j].Start < parsed[i].End)
+                                    return "Time slots on the same day cannot overlap.";
+                            }
+                        }
+
+                        return null;
+                    }
+                }
+                catch
+                {
+                    return "Invalid time slots data.";
+                }
+            }
+
+            if (TimeSpan.TryParse(startStr, out var ps) && TimeSpan.TryParse(endStr, out var pe) && pe <= ps)
+                return "End time must be later on the same day (cannot continue into the next day).";
+
+            return null;
+        }
+
+        private static (TimeSpan? Start, TimeSpan? End, string? SlotsJson, string? Error) ParseAvailability(AddSkillViewModel model)
+        {
+            var err = ValidateAvailabilityTimes(model.AvailableTimeStart, model.AvailableTimeEnd, model.AvailableTimeSlots);
+            if (err != null) return (null, null, null, err);
+
+            TimeSpan? start = null;
+            TimeSpan? end = null;
+            if (!string.IsNullOrEmpty(model.AvailableTimeStart) && TimeSpan.TryParse(model.AvailableTimeStart, out var ps))
+                start = ps;
+            if (!string.IsNullOrEmpty(model.AvailableTimeEnd) && TimeSpan.TryParse(model.AvailableTimeEnd, out var pe))
+                end = pe;
+
+            return (start, end, model.AvailableTimeSlots, null);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "User")]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> DeleteUserSkillForLoggedIn(int userSkillId)
+        {
+            var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(idStr)) return Unauthorized();
+            int userId = int.Parse(idStr);
+
+            if (!await _userRepository.UserOwnsUserSkillAsync(userId, userSkillId))
+                return Json(new { success = false, message = "Skill not found." });
+
+            await _userRepository.DeleteUserSkillAsync(userSkillId);
+            return Json(new { success = true, message = "Skill removed." });
         }
 
         // Logged-in users: update an existing skill row
@@ -298,16 +565,9 @@ namespace finalyearproject.UI.Controllers
 
             int userId = int.Parse(idStr);
 
-            TimeSpan? startTime = null;
-            TimeSpan? endTime = null;
-
-            if (!string.IsNullOrEmpty(model.AvailableTimeStart) &&
-                TimeSpan.TryParse(model.AvailableTimeStart, out var parsedStart))
-                startTime = parsedStart;
-
-            if (!string.IsNullOrEmpty(model.AvailableTimeEnd) &&
-                TimeSpan.TryParse(model.AvailableTimeEnd, out var parsedEnd))
-                endTime = parsedEnd;
+            var (startTime, endTime, slotsJson, timeErr) = ParseAvailability(model);
+            if (timeErr != null)
+                return Json(new { success = false, message = timeErr });
 
             var (result, message) = await _userRepository.UpdateUserSkillAsync(
                 model.UserSkillId.Value,
@@ -318,7 +578,8 @@ namespace finalyearproject.UI.Controllers
                 model.ExperienceLevel,
                 model.AvailableDays,
                 startTime,
-                endTime);
+                endTime,
+                slotsJson);
 
             if (result > 0)
             {
@@ -347,17 +608,19 @@ namespace finalyearproject.UI.Controllers
                 return Json(new { success = false, message = "User is not logged in." });
 
             int userId = int.Parse(idStr);
+            var user = await _userRepository.GetUserByIdAsync(userId);
 
-            string cvPath = null;
+            string cvPathToSave = user?.CVPath;
             if (cv != null && cv.Length > 0)
-            {
-                cvPath = await SaveFileAsync(cv, "uploads");
-            }
+                cvPathToSave = await SaveFileAsync(cv, "uploads");
+
+            if (string.IsNullOrWhiteSpace(cvPathToSave))
+                return Json(new { success = false, message = "Please choose a CV file to upload." });
 
             var (result, message) = await _userRepository.UpdateUserDocumentsAsync(
                 userId,
-                cvPath,
-                portfolioUrl ?? string.Empty);
+                cvPathToSave,
+                portfolioUrl ?? user?.PortfolioUrl ?? string.Empty);
 
             if (result == 1)
             {
@@ -383,7 +646,7 @@ namespace finalyearproject.UI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UploadCVAndProceed(IFormFile cv, string portfolioUrl)
+        public async Task<IActionResult> UploadCVAndProceed(IFormFile cv, string portfolioUrl, bool skipSkills = false)
         {
             var username = HttpContext.Session.GetString("Username");
             var email = HttpContext.Session.GetString("Email");
@@ -393,15 +656,20 @@ namespace finalyearproject.UI.Controllers
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email))
                 return Json(new { success = false, message = "Session expired. Please start registration again." });
 
-            if (skills.Count == 0)
-                return Json(new { success = false, message = "Please add at least one skill before proceeding" });
+            if (!skipSkills && skills.Count == 0)
+                return Json(new { success = false, message = "Please add at least one skill before proceeding, or use Skip skills." });
 
-            if (cv == null || cv.Length == 0)
+            if (!skipSkills && (cv == null || cv.Length == 0))
                 return Json(new { success = false, message = "Please upload your CV" });
 
-            string cvPath = await SaveFileAsync(cv, "uploads");
+            string cvPath = "";
+            if (cv != null && cv.Length > 0)
+                cvPath = await SaveFileAsync(cv, "uploads");
+
             HttpContext.Session.SetString("CVPath", cvPath);
             HttpContext.Session.SetString("PortfolioUrl", portfolioUrl ?? "");
+            if (skipSkills)
+                HttpContext.Session.SetString("UserSkills", "[]");
 
             string otpCode = GenerateOTP();
             DateTime expiresAt = DateTime.Now.AddMinutes(10);
@@ -473,10 +741,6 @@ namespace finalyearproject.UI.Controllers
             var passwordHash = HttpContext.Session.GetString("PasswordHash");
             var passwordSalt = HttpContext.Session.GetString("PasswordSalt");
             var phoneNumber = HttpContext.Session.GetString("PhoneNumber");
-            var cvPath = HttpContext.Session.GetString("CVPath");
-            var portfolioUrl = HttpContext.Session.GetString("PortfolioUrl");
-            var skillsJson = HttpContext.Session.GetString("UserSkills") ?? "[]";
-            var skills = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(skillsJson);
 
             var user = new User
             {
@@ -485,42 +749,20 @@ namespace finalyearproject.UI.Controllers
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
                 PhoneNumber = phoneNumber,
-                CVPath = cvPath,
-                PortfolioUrl = portfolioUrl
+                CVPath = "",
+                PortfolioUrl = ""
             };
 
             var (result, message) = await _userRepository.RegisterUserAsync(user);
 
             if (result > 0)
             {
-                Console.WriteLine($"✅ User created with UserId: {result}");
                 await _userRepository.MarkOTPAsUsedAsync(model.Email, model.OTPCode);
+                await _userRepository.MarkEmailAsVerifiedAsync(result);
+                await _userRepository.FinalizeRegistrationAutoApproveAsync(result);
 
-                foreach (var skill in skills)
-                {
-                    TimeSpan? startTime = null;
-                    TimeSpan? endTime = null;
-
-                    var startStr = skill.ContainsKey("AvailableTimeStart") ? skill["AvailableTimeStart"]?.ToString() : null;
-                    var endStr = skill.ContainsKey("AvailableTimeEnd") ? skill["AvailableTimeEnd"]?.ToString() : null;
-
-                    if (!string.IsNullOrEmpty(startStr) && TimeSpan.TryParse(startStr, out var ps)) startTime = ps;
-                    if (!string.IsNullOrEmpty(endStr) && TimeSpan.TryParse(endStr, out var pe)) endTime = pe;
-
-                    await _userRepository.AddUserSkillAsync(
-                        result,
-                        Convert.ToInt32(skill["FieldId"]),
-                        Convert.ToInt32(skill["SkillId"]),
-                        Convert.ToInt32(skill["SubSkillId"]),
-                        Convert.ToInt32(skill["ExperienceLevel"]),
-                        skill["AvailableDays"].ToString(),
-                        startTime,
-                        endTime
-                    );
-                }
-
-                Console.WriteLine("✅ All skills added successfully");
                 HttpContext.Session.Clear();
+                TempData["SuccessMessage"] = "Registration complete! You can log in now and use Ask Help. Add skills from your profile when you want to help others.";
                 return RedirectToAction("RegistrationComplete");
             }
 

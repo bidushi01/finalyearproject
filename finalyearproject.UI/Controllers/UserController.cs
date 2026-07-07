@@ -63,6 +63,7 @@ namespace finalyearproject.UI.Controllers
 
             return Json(new
             {
+                username = user.Username,
                 email = user.Email,
                 phoneNumber = user.PhoneNumber,
                 joinedDate = user.CreatedAt,
@@ -79,7 +80,7 @@ namespace finalyearproject.UI.Controllers
             if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
 
             int userId = int.Parse(userIdClaim);
-            var skills = await _userRepository.GetUserSkillsDisplayAsync(userId);
+            var skills = await _userRepository.GetUserSkillsDisplayAsync(userId, approvedOnly: true);
             return Json(skills);
         }
 
@@ -92,6 +93,11 @@ namespace finalyearproject.UI.Controllers
             if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
 
             int seekerId = int.Parse(userIdClaim);
+            // Expire stale pending (RP) via stored proc, then enforce seeker gate (C0: HS+HP+RP = 0).
+            var busyReason = await _userRepository.GetAskHelpBusyReasonAsync(seekerId);
+            if (busyReason != null)
+                return Json(new { seekerBusy = true, busyReason, helpers = Array.Empty<object>() });
+
             TimeSpan? ts = ParseTime(timeStart);
             TimeSpan? te = ParseTime(timeEnd);
 
@@ -112,7 +118,7 @@ namespace finalyearproject.UI.Controllers
                     });
                 }
             }
-            return Json(list);
+            return Json(new { seekerBusy = false, helpers = list });
         }
 
         // ── Phase 3: Send help request (CRH check, set RP_s=1, create request) ─
@@ -125,8 +131,9 @@ namespace finalyearproject.UI.Controllers
             if (string.IsNullOrEmpty(userIdClaim)) return Json(new { success = false, message = "Not logged in." });
 
             int seekerId = int.Parse(userIdClaim);
-            if (!await _userRepository.CanRequestHelpAsync(seekerId))
-                return Json(new { success = false, message = "You already have an active request or session. Complete or cancel it first." });
+            var sendBusyReason = await _userRepository.GetAskHelpBusyReasonAsync(seekerId);
+            if (sendBusyReason != null)
+                return Json(new { success = false, message = AskHelpBlockedMessage(sendBusyReason) });
 
             TimeSpan? ts = ParseTime(timeStart);
             TimeSpan? te = ParseTime(timeEnd);
@@ -217,7 +224,21 @@ namespace finalyearproject.UI.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> AcceptRequest(int helpRequestId)
         {
+            var parties = await _userRepository.GetHelpRequestPartiesAsync(helpRequestId);
             var ok = await _userRepository.AcceptHelpRequestAsync(helpRequestId);
+
+            if (ok && parties.SeekerId > 0 && parties.HelperId > 0)
+            {
+                var helper = await _userRepository.GetUserByIdAsync(parties.HelperId);
+                var helperName = helper?.Username ?? "Your helper";
+                var systemText = helperName + " has accepted your help request. You can chat and start a video call when ready.";
+
+                await _userRepository.SendHelpMessageAsync(helpRequestId, parties.HelperId, systemText, "");
+
+                await _helpHub.Clients.Group("user-" + parties.SeekerId)
+                    .SendAsync("HelpRequestAccepted", helperName, helpRequestId);
+            }
+
             return Json(new { success = ok });
         }
 
@@ -233,13 +254,55 @@ namespace finalyearproject.UI.Controllers
         [HttpPost]
         [Authorize(Roles = "User")]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> WithdrawRequest(int helpRequestId)
+        public async Task<IActionResult> WithdrawRequest(int helpRequestId, bool isTimeout = false)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdClaim)) return Json(new { success = false });
             int userId = int.Parse(userIdClaim);
-            var ok = await _userRepository.WithdrawHelpRequestAsync(helpRequestId, userId);
+
+            // Capture helper before withdraw so we can update their badge via SignalR.
+            var parties = await _userRepository.GetHelpRequestPartiesAsync(helpRequestId);
+            var ok = await _userRepository.WithdrawHelpRequestAsync(helpRequestId, userId, isTimeout);
+
+            // Robust timeout penalty path: even if SQL withdraw proc implementation differs,
+            // enforce no-response penalty from app layer when timeout withdraw succeeds.
+            if (ok && isTimeout && parties.HelperId > 0)
+            {
+                await _userRepository.RecordHelperNoResponseAsync(parties.HelperId);
+            }
+
+            if (ok && parties.HelperId > 0)
+            {
+                await _helpHub.Clients.Group("user-" + parties.HelperId)
+                    .SendAsync("HelpRequestWithdrawn");
+            }
+
             return Json(new { success = ok });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> GetVideoCallParties(int helpRequestId)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdClaim)) return Unauthorized();
+
+            int userId = int.Parse(userIdClaim);
+            var parties = await _userRepository.GetHelpRequestPartiesAsync(helpRequestId);
+            if (parties.SeekerId == 0 || parties.HelperId == 0)
+                return Json(new { success = false });
+
+            if (userId != parties.SeekerId && userId != parties.HelperId)
+                return Json(new { success = false });
+
+            var status = (await _userRepository.GetHelpRequestStatusAsync(helpRequestId) ?? "")
+                .Replace(" ", "", StringComparison.OrdinalIgnoreCase)
+                .ToLowerInvariant();
+
+            if (status != "accepted")
+                return Json(new { success = false });
+
+            return Json(new { success = true, seekerId = parties.SeekerId, helperId = parties.HelperId });
         }
 
         [HttpGet]
@@ -360,5 +423,17 @@ namespace finalyearproject.UI.Controllers
             if (TimeSpan.TryParse(s, out var t)) return t;
             return null;
         }
+
+        private static string AskHelpBlockedMessage(string reason) => reason switch
+        {
+            "helperActive" =>
+                "You are helping another user right now. Finish that help session from Help Inbox before asking for help yourself.",
+            "seekerPending" =>
+                "You already have a request waiting for a response. Open My Requests to cancel it if you want to ask someone else.",
+            "seekerActive" =>
+                "Complete your help session with your current helper before asking someone else. Use Help Inbox or My Requests to finish the session.",
+            _ =>
+                "Complete or cancel your current help first — then you can ask help from someone else. Open My Requests to manage it."
+        };
     }
 }

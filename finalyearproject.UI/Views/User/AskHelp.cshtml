@@ -10,7 +10,6 @@
         padding: 32px 20px;
     }
 
-    /* ── Page Header ── */
     .page-header {
         margin-bottom: 28px;
     }
@@ -316,11 +315,6 @@
         }
     }
 
-    .request-modal .big-icon {
-        font-size: 3.5rem;
-        margin-bottom: 12px;
-    }
-
     .request-modal h4 {
         color: #e8f4f8;
         margin: 0 0 8px;
@@ -347,7 +341,7 @@
 
     <!-- ── Header ── -->
     <div class="page-header">
-        <h2>🙋 Ask for Help</h2>
+        <h2> Ask for Help</h2>
         <p>Find a verified expert who can help you. Select a skill and we'll match you with the best helpers.</p>
     </div>
 
@@ -412,256 +406,26 @@
 <!-- ── Request Sent Overlay ── -->
 <div class="request-overlay" id="requestOverlay">
     <div class="request-modal">
-        <div class="big-icon">✅</div>
         <h4>Request Sent!</h4>
         <p>
             Your request has been sent to <strong id="requestedHelperName">the helper</strong>.<br>
             They will see it under <strong>My Requests</strong> with Accept / Reject. After they accept, you can chat there.
         </p>
-        <p class="small text-muted mb-2">If no response in 2 minutes, we'll suggest the next best helper.</p>
+        <p class="small text-muted mb-2">If no response in 2 minutes, the request is auto-cancelled so you can choose another helper.</p>
         <div id="nextHelperArea" style="display:none; margin-bottom:12px;">
             <p class="small mb-1">Helper didn't respond. Send to next: <strong id="nextHelperName"></strong>?</p>
             <button type="button" class="btn btn-sm btn-primary" id="sendToNextBtn">Send to this helper</button>
         </div>
-        <a href="/User/MyHelpRequests" class="modal-close-btn mb-2 d-inline-block text-decoration-none text-center">📬 View My Requests</a>
-        <button class="modal-close-btn" onclick="document.getElementById('requestOverlay').classList.remove('show'); clearTimeout(window._requestTimeout);">
+        <button type="button" class="modal-close-btn mb-2" id="cancelRequestBtn" style="background:rgba(245,101,101,0.15);border:1px solid rgba(245,101,101,0.35);">
+            Cancel this request
+        </button>
+        <a href="/User/MyHelpRequests" class="modal-close-btn mb-2 d-inline-block text-decoration-none text-center">View My Requests</a>
+        <button class="modal-close-btn" onclick="document.getElementById('requestOverlay').classList.remove('show');">
             Got it
         </button>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        const levelMap   = { 1: 'Student / Final Year / Intern', 2: '0-3 Yrs', 3: '3-5 Yrs', 4: '5+ Yrs' };
-        const levelClass = { 1: 'level-1', 2: 'level-2', 3: 'level-3', 4: 'level-4' };
-
-        let selectedSubSkillId = null;
-        let lastSearch = { fieldId: null, skillId: null, subSkillId: null, timeStart: '', timeEnd: '', day: '' };
-
-        // ── Field Dropdown (same data as Register; no "Add New" option for Ask Help) ──
-        $('#selectField').dxSelectBox({
-            dataSource: '/Account/GetFields',
-            displayExpr: 'FieldName',
-            valueExpr: 'FieldId',
-            placeholder: 'Choose field...',
-            stylingMode: 'outlined',
-            onValueChanged: function (e) {
-                const skillBox = $('#selectSkill').dxSelectBox('instance');
-                skillBox.option('dataSource', e.value ? '/Account/GetSkillsByField?fieldId=' + e.value : []);
-                skillBox.option('value', null);
-                const subBox = $('#selectSubSkill').dxSelectBox('instance');
-                subBox.option('dataSource', []);
-                subBox.option('value', null);
-                selectedSubSkillId = null;
-            }
-        });
-
-        // ── Skill Dropdown ──
-        $('#selectSkill').dxSelectBox({
-            displayExpr: 'SkillName',
-            valueExpr: 'SkillId',
-            placeholder: 'Choose skill...',
-            stylingMode: 'outlined',
-            onValueChanged: function (e) {
-                const subBox = $('#selectSubSkill').dxSelectBox('instance');
-                subBox.option('dataSource', e.value ? '/Account/GetSubSkillsBySkill?skillId=' + e.value : []);
-                subBox.option('value', null);
-                selectedSubSkillId = null;
-            }
-        });
-
-        // ── Sub-Skill Dropdown ──
-        $('#selectSubSkill').dxSelectBox({
-            displayExpr: 'SubSkillName',
-            valueExpr: 'SubSkillId',
-            placeholder: 'Choose sub-skill...',
-            stylingMode: 'outlined',
-            onValueChanged: function (e) {
-                selectedSubSkillId = e.value;
-            }
-        });
-
-        // ── Available Day (single day, same options as registration but no multi-select) ──
-        $('#selectDay').dxSelectBox({
-            dataSource: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-            placeholder: 'Choose day...',
-            stylingMode: 'outlined'
-        });
-
-        // ── Preferred start / end time ──
-        $('#preferredStart').dxDateBox({
-            type: 'time',
-            placeholder: 'Start time',
-            pickerType: 'list'
-        });
-
-        $('#preferredEnd').dxDateBox({
-            type: 'time',
-            placeholder: 'End time',
-            pickerType: 'list'
-        });
-
-        // ── Search Button ──
-        $('#btnSearch').dxButton({
-            text: 'Find Helpers',
-            type: 'default',
-            icon: 'find',
-            width: '100%',
-            stylingMode: 'contained',
-            onClick: function () {
-                const fId  = $('#selectField').dxSelectBox('instance').option('value');
-                const sId  = $('#selectSkill').dxSelectBox('instance').option('value');
-                const subId = selectedSubSkillId;
-                const dayInst = $('#selectDay').dxSelectBox('instance');
-                const startInst = $('#preferredStart').dxDateBox('instance');
-                const endInst = $('#preferredEnd').dxDateBox('instance');
-                const day = dayInst ? dayInst.option('value') : '';
-                const startVal = startInst ? startInst.option('value') : null;
-                const endVal = endInst ? endInst.option('value') : null;
-                const timeStart = startVal && startVal instanceof Date ? startVal.toTimeString().slice(0, 8) : (startVal || '');
-                const timeEnd = endVal && endVal instanceof Date ? endVal.toTimeString().slice(0, 8) : (endVal || '');
-
-                if (!subId) {
-                    DevExpress.ui.notify('Please select a field, skill, and sub-skill first.', 'warning', 2500);
-                    return;
-                }
-                lastSearch = { fieldId: fId, skillId: sId, subSkillId: subId, timeStart, timeEnd, day };
-                findHelpers(fId, sId, subId, timeStart, timeEnd, day);
-            }
-        });
-
-        function showStatus(icon, text) {
-            const banner = document.getElementById('statusBanner');
-            document.getElementById('statusIcon').textContent = icon;
-            document.getElementById('statusText').textContent = text;
-            banner.style.display = 'flex';
-        }
-
-        function hideStatus() {
-            document.getElementById('statusBanner').style.display = 'none';
-        }
-
-        function findHelpers(fId, sId, subId, timeStart, timeEnd, day) {
-            showStatus('🔍', 'Searching for qualified helpers...');
-            document.getElementById('resultsSection').style.display = 'none';
-            const q = new URLSearchParams({ fieldId: fId, skillId: sId, subSkillId: subId });
-            if (timeStart) q.set('timeStart', timeStart);
-            if (timeEnd) q.set('timeEnd', timeEnd);
-            if (day) q.set('availableDay', day);
-
-            fetch('/User/GetRankedHelpers?' + q.toString())
-                .then(r => r.json())
-                .then(helpers => {
-                    hideStatus();
-                    renderHelpers(helpers || [], subId);
-                });
-        }
-
-        function renderHelpers(helpers, subId) {
-            const section = document.getElementById('resultsSection');
-            const grid    = document.getElementById('helpersGrid');
-            const count   = document.getElementById('helperCount');
-
-            section.style.display = 'block';
-            count.textContent = helpers.length === 0 ? 'No user available' : helpers.length + ' found';
-
-            if (!helpers.length) {
-                grid.innerHTML = `
-                    <div class="no-helpers">
-                        <div class="icon">😕</div>
-                        <p><strong>No user available.</strong><br>
-                        No helpers are available for this skill at the selected time. Try a different day, time, or sub-skill.</p>
-                    </div>`;
-                return;
-            }
-
-            grid.innerHTML = helpers.map((h, i) => {
-                const initial = (h.username || '?')[0].toUpperCase();
-                const hes = (h.hes != null ? h.hes : h.HES) != null ? Number(h.hes || h.HES).toFixed(2) : '—';
-                const safeName = (h.username || 'Unknown').replace(/'/g, "\\'");
-                return `
-                <div class="helper-card ${i === 0 ? 'top-pick' : ''}">
-                    <div class="helper-rank">#${i + 1} Helper</div>
-                    <div class="helper-name">
-                        <div class="helper-avatar">${initial}</div>
-                        ${h.username || 'Unknown'}
-                    </div>
-                    <div class="helper-skill-info">
-                        <span class="badge-level level-4">Score ${hes}</span>
-                    </div>
-                    <button class="request-btn" onclick="sendRequest(${h.userId}, '${safeName}', this)">
-                        📨 Request Help
-                    </button>
-                </div>`;
-            }).join('');
-        }
-
-        function sendRequest(helperId, helperName, btn) {
-            btn.disabled = true;
-            btn.textContent = 'Sending...';
-            const s = lastSearch;
-            const desc = document.getElementById('txtProblemDesc').value || '';
-            const body = new URLSearchParams({
-                helperId, fieldId: s.fieldId, skillId: s.skillId, subSkillId: s.subSkillId,
-                timeStart: s.timeStart || '', timeEnd: s.timeEnd || '', availableDay: s.day || '', description: desc
-            });
-
-            fetch('/User/SendHelpRequest', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString()
-            })
-            .then(r => r.json())
-            .then(function (data) {
-                document.getElementById('requestedHelperName').textContent = helperName;
-                document.getElementById('requestOverlay').classList.add('show');
-                btn.textContent = '✓ Request Sent';
-                window._lastSentHelperId = helperId;
-                window._lastHelpRequestId = data.helpRequestId || 0;
-                if (window._requestTimeout) clearTimeout(window._requestTimeout);
-                window._requestTimeout = setTimeout(function () {
-                    var s = lastSearch;
-                    var q = 'fieldId=' + s.fieldId + '&skillId=' + s.skillId + '&subSkillId=' + s.subSkillId;
-                    if (s.timeStart) q += '&timeStart=' + encodeURIComponent(s.timeStart);
-                    if (s.timeEnd) q += '&timeEnd=' + encodeURIComponent(s.timeEnd);
-                    if (s.day) q += '&availableDay=' + encodeURIComponent(s.day);
-                    q += '&excludeHelperId=' + helperId;
-                    fetch('/User/GetRankedHelpers?' + q).then(function (r) { return r.json(); }).then(function (list) {
-                        if (list && list.length > 0) {
-                            document.getElementById('nextHelperName').textContent = list[0].username || 'Next helper';
-                            document.getElementById('nextHelperArea').style.display = 'block';
-                            window._nextHelper = list[0];
-                        }
-                    });
-                }, 120000);
-            });
-        }
-
-        $('#sendToNextBtn').on('click', function () {
-            var next = window._nextHelper;
-            var reqId = window._lastHelpRequestId;
-            if (!next || !reqId) return;
-            var s = lastSearch;
-            var desc = document.getElementById('txtProblemDesc').value || '';
-            fetch('/User/WithdrawRequest', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'helpRequestId=' + reqId })
-                .then(function (r) { return r.json(); })
-                .then(function (w) {
-                    if (!w.success) return;
-                    var body = new URLSearchParams({
-                        helperId: next.userId, fieldId: s.fieldId, skillId: s.skillId, subSkillId: s.subSkillId,
-                        timeStart: s.timeStart || '', timeEnd: s.timeEnd || '', availableDay: s.day || '', description: desc
-                    });
-                    return fetch('/User/SendHelpRequest', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
-                })
-                .then(function (r) { return r && r.json ? r.json() : null; })
-                .then(function (data) {
-                    if (data && data.success) {
-                        document.getElementById('requestedHelperName').textContent = next.username || 'Next helper';
-                        document.getElementById('nextHelperArea').style.display = 'none';
-                        window._lastHelpRequestId = data.helpRequestId || 0;
-                        window._lastSentHelperId = next.userId;
-                    }
-                });
-        });
-    </script>
+    <script src="~/js/askHelp.js"></script>
 }

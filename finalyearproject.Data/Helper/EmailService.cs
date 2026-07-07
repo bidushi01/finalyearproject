@@ -83,6 +83,52 @@ namespace finalyearproject.Data.Helper
             return true;
         }
 
+        public async Task<bool> SendSkillApprovedEmailAsync(string toEmail, string username, string skillSummary)
+        {
+            var smtpClient = new SmtpClient(_emailSettings.SmtpServer)
+            {
+                Port = _emailSettings.Port,
+                Credentials = new NetworkCredential(_emailSettings.Username, _emailSettings.Password),
+                EnableSsl = true
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(_emailSettings.From, "PeerHelp Platform"),
+                Subject = "Your skill was approved",
+                Body = $"Hello {username},\n\nThe skill you added is now approved by the admin:\n{skillSummary}\n\nYou are now eligible to receive help requests for this skill on PeerAssist.",
+                IsBodyHtml = false
+            };
+
+            mailMessage.To.Add(toEmail);
+            await smtpClient.SendMailAsync(mailMessage);
+            smtpClient.Dispose();
+            return true;
+        }
+
+        public async Task<bool> SendSkillRejectedEmailAsync(string toEmail, string username, string skillSummary, string reason)
+        {
+            var smtpClient = new SmtpClient(_emailSettings.SmtpServer)
+            {
+                Port = _emailSettings.Port,
+                Credentials = new NetworkCredential(_emailSettings.Username, _emailSettings.Password),
+                EnableSsl = true
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(_emailSettings.From, "PeerHelp Platform"),
+                Subject = "Your skill was not approved",
+                Body = $"Hello {username},\n\nThe skill you submitted was reviewed and not approved:\n{skillSummary}\n\nReason: {reason}\n\nYou may update your CV and submit again from your profile.",
+                IsBodyHtml = false
+            };
+
+            mailMessage.To.Add(toEmail);
+            await smtpClient.SendMailAsync(mailMessage);
+            smtpClient.Dispose();
+            return true;
+        }
+
         public async Task<bool> SendPasswordResetEmailAsync(string toEmail, string resetLink)
         {
             var smtpClient = new SmtpClient(_emailSettings.SmtpServer)

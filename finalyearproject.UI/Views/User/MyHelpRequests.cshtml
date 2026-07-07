@@ -22,7 +22,7 @@
 .chat-send input.chat-file { max-width: 220px; font-size: 0.8rem; }
 </style>
 <div class="requests-wrap">
-    <h2 class="mb-4" style="color:#e8f4f8;">📬 My Requests (as seeker)</h2>
+    <h2 class="mb-4" style="color:#e8f4f8;"> My Requests (as seeker)</h2>
     <p class="text-muted mb-4">These are the help requests you have sent to other users. Chat with helpers and mark tasks as completed or not completed.</p>
 
     <h5 class="section-title mt-2">Requests you sent</h5>
@@ -37,7 +37,7 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small mb-3">
-                        Please rate this help session from 1–5. Rating is required so the algorithm can adjust scores.
+                        Please rate this help session from 1–5. 
                     </p>
                     <input type="hidden" id="ratingHelpRequestId" />
                     <input type="hidden" id="ratingIsSuccessful" />
@@ -71,7 +71,7 @@
 
 <!-- Chat modal -->
 <div class="modal fade" id="chatModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="background:#0a0f1d; border:1px solid rgba(255,255,255,0.12);">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title text-white" id="chatModalTitle">Chat</h5>
@@ -80,6 +80,9 @@
             <div class="modal-body">
                 <div id="chatCompletedBanner" class="alert alert-info py-2 mb-2 d-none" style="background:rgba(72,187,120,0.2);border:1px solid rgba(72,187,120,0.3);color:#48bb78;">
                     ✓ Task Completed — View-only. Messaging is disabled.
+                </div>
+                <div id="peerAssistVideoActions" class="mb-2 d-none">
+                    <button type="button" class="btn btn-sm btn-success" id="peerAssistStartVideoBtn">Start video call</button>
                 </div>
                 <div id="chatMessages" class="chat-box"></div>
                 <div id="chatSendArea" class="chat-send">
@@ -182,6 +185,13 @@ $(function () {
             $('#chatCompletedBanner').addClass('d-none');
             $('#chatSendArea').removeClass('d-none');
         }
+        if (window.peerAssistVideoCall) {
+            window.peerAssistVideoCall.onChatOpened({
+                helpRequestId: currentHelpRequestId,
+                status: currentChatStatus,
+                otherName: currentOtherName
+            });
+        }
         $('#chatModal').modal('show');
         refreshChat();
 
@@ -189,6 +199,10 @@ $(function () {
             window.peerAssistNotifications.clearMessages();
         }
     }
+
+    $('#chatModal').on('hidden.bs.modal', function () {
+        if (window.peerAssistVideoCall) window.peerAssistVideoCall.onChatClosed();
+    });
 
     function openRating(id, isSuccess) {
         if (!ratingModal) return;
@@ -325,6 +339,14 @@ $(function () {
     });
 
     setInterval(function () { if (currentHelpRequestId && $('#chatModal').hasClass('show')) refreshChat(); }, 3000);
+
+    window.peerAssistOnHelpRequestAccepted = function (helpRequestId) {
+        load();
+        if (currentHelpRequestId === helpRequestId && $('#chatModal').hasClass('show')) {
+            refreshChat();
+        }
+    };
+
     load();
 });
 </script>
